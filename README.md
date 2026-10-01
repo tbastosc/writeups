@@ -1,2 +1,22 @@
 # writeups
-Writeups and walktroughs from /CTFs /challenges /sherlocks /investigation
+Writeups and walktroughs from /CTFs /Challenges /Sherlocks /Lab Investigations
+
+---
+
+Some tools used:
+
+
+| Technology | Tools |
+|---|---|
+| **SIEM / Log Aggregation** | ![Splunk](https://img.shields.io/badge/Splunk-black?style=flat-square) ![Elastic](https://img.shields.io/badge/Elastic%20Stack-005571?style=flat-square) ![Sentinel](https://img.shields.io/badge/Microsoft%20Sentinel-0078D4?style=flat-square) ![Chronicle](https://img.shields.io/badge/Google%20Chronicle-4285F4?style=flat-square) ![Graylog](https://img.shields.io/badge/Graylog-FF3633?style=flat-square) ![LogRhythm](https://img.shields.io/badge/LogRhythm-00263A?style=flat-square) |
+| **EDR / XDR** | ![CrowdStrike](https://img.shields.io/badge/CrowdStrike%20Falcon-E01F3D?style=flat-square) ![Defender](https://img.shields.io/badge/MS%20Defender%20for%20Endpoint-0078D4?style=flat-square) ![ElasticDefend](https://img.shields.io/badge/Elastic%20Defend-005571?style=flat-square) ![CortexXDR](https://img.shields.io/badge/Cortex%20XDR-00C7B1?style=flat-square) |
+| **Network Detection & Traffic Analysis** | ![Wireshark](https://img.shields.io/badge/Wireshark-1679A7?style=flat-square) ![Zeek](https://img.shields.io/badge/Zeek-00A0DC?style=flat-square) ![Suricata](https://img.shields.io/badge/Suricata-D2282E?style=flat-square) ![NetworkMiner](https://img.shields.io/badge/NetworkMiner-333333?style=flat-square) ![tcpdump](https://img.shields.io/badge/tcpdump-4B4B4B?style=flat-square) |
+| **Threat Intelligence** | ![VirusTotal](https://img.shields.io/badge/VirusTotal-394EFF?style=flat-square) ![MISP](https://img.shields.io/badge/MISP-0A3D62?style=flat-square) ![OTX](https://img.shields.io/badge/AlienVault%20OTX-5A2D82?style=flat-square) ![RecordedFuture](https://img.shields.io/badge/Recorded%20Future-C8102E?style=flat-square) ![AbuseIPDB](https://img.shields.io/badge/AbuseIPDB-FF4500?style=flat-square) ![Shodan](https://img.shields.io/badge/Shodan-EA1D2C?style=flat-square) ![GreyNoise](https://img.shields.io/badge/GreyNoise-343A40?style=flat-square) ![ATTACK](https://img.shields.io/badge/MITRE%20ATT%26CK%20Navigator-A51931?style=flat-square) |
+| **Digital Forensics (DFIR)** | ![Autopsy](https://img.shields.io/badge/Autopsy%20%2F%20Sleuth%20Kit-2F4858?style=flat-square) ![Volatility](https://img.shields.io/badge/Volatility-0E7C7B?style=flat-square) ![FTKImager](https://img.shields.io/badge/FTK%20Imager-17A2B8?style=flat-square) ![Velociraptor](https://img.shields.io/badge/Velociraptor-6A0DAD?style=flat-square) ![EZTools](https://img.shields.io/badge/Eric%20Zimmerman's%20Tools-555555?style=flat-square) ![ExifTool](https://img.shields.io/badge/ExifTool-FF8800?style=flat-square) ![Binwalk](https://img.shields.io/badge/Binwalk-2E8B57?style=flat-square) |
+| **Sandboxing (Dynamic Analysis)** | ![AnyRun](https://img.shields.io/badge/Any.Run-E4002B?style=flat-square) ![Cuckoo](https://img.shields.io/badge/Cuckoo%20%2F%20CAPE%20Sandbox-F4A900?style=flat-square) |
+| **Reverse Engineering (Static Analysis)** | ![Ghidra](https://img.shields.io/badge/Ghidra-5C8A00?style=flat-square) ![IDAPro](https://img.shields.io/badge/IDA%20Pro-0057A3?style=flat-square) ![CLI](https://img.shields.io/badge/strings%20%2F%20binwalk%20%2F%20file-4B4B4B?style=flat-square) |
+| **Vulnerability Management** | ![Tenable Nessus](https://img.shields.io/badge/Nessus-00B4C8?style=flat-square) ![OpenVAS](https://img.shields.io/badge/OpenVAS-78B62E?style=flat-square) |
+| **Identity & Access Investigation** | ![EntraID](https://img.shields.io/badge/Microsoft%20Entra%20ID%20Logs-0078D4?style=flat-square) ![BloodHound](https://img.shields.io/badge/BloodHound-FF0000?style=flat-square) |
+| **Cloud Security** | ![DefenderCloud](https://img.shields.io/badge/Microsoft%20Defender%20for%20Cloud-0078D4?style=flat-square) |
+| **Case Management / SOAR** | ![TheHive](https://img.shields.io/badge/TheHive%20%2B%20Cortex-1E3A5F?style=flat-square) ![SplunkSOAR](https://img.shields.io/badge/Splunk%20SOAR%20(Phantom)-black?style=flat-square) ![XSOAR](https://img.shields.io/badge/Palo%20Alto%20XSOAR-FA582D?style=flat-square) |
+| **OSINT / Reconnaissance Support** | ![Maltego](https://img.shields.io/badge/Maltego-1A1A1A?style=flat-square) ![theHarvester](https://img.shields.io/badge/theHarvester-3C8DBC?style=flat-square) ![crtsh](https://img.shields.io/badge/crt.sh-555555?style=flat-square) ![GoogleLens](https://img.shields.io/badge/Google%20Lens%20%2F%20TinEye-4285F4?style=flat-square) |
