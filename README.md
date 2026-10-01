@@ -1,2 +1,2 @@
 # writeups
-Writeups and walktroughs from /CTFs /challenges /sherlocks 
+Writeups and walktroughs from /CTFs /challenges /sherlocks /investigation
