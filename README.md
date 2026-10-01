@@ -36,11 +36,3 @@ Some tools used:
 | **Virtualization & Infra** | ![Proxmox](https://img.shields.io/badge/Proxmox-E57000?style=flat-square&logo=proxmox&logoColor=white) ![Docker](https://img.shields.io/badge/Docker-2496ED?style=flat-square&logo=docker&logoColor=white) ![Portainer](https://img.shields.io/badge/Portainer-13BEF9?style=flat-square&logo=portainer&logoColor=white) |
 | **Programming / Scripting** | ![Python](https://img.shields.io/badge/Python-3776AB?style=flat-square&logo=python&logoColor=white) ![Bash](https://img.shields.io/badge/Bash-4EAA25?style=flat-square&logo=gnubash&logoColor=white) ![PowerShell](https://img.shields.io/badge/PowerShell-5391FE?style=flat-square) ![C++](https://img.shields.io/badge/C%2B%2B-00599C?style=flat-square&logo=cplusplus&logoColor=white) ![SQL](https://img.shields.io/badge/SQL-4B5563?style=flat-square) |
 
-
-## 🗒️ Notes and CheatSheets {#notes}
-
-| Document | Link |
-|---|---|
-| 📂 **Linux CheatSheet: Fundamentals to Advanced (PT)** | [View](https://tbastosc.github.io/linux-cheatsheet) |
-| 📂 **Microsoft CheatSheet: Fundamentals to Advanced (PT)** | [View](https://tbastosc.github.io/microsoft-cheatsheet) |
-
