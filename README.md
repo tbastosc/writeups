@@ -3,8 +3,16 @@ Writeups and walktroughs from /CTFs /Challenges /Sherlocks /Lab Investigations
 
 ---
 
-Some tools used:
+## 🗒️ Notes and CheatSheets {#notes}
 
+| Document | Link |
+|---|---|
+| 📂 **Linux CheatSheet: Fundamentals to Advanced (PT)** | [View](https://tbastosc.github.io/linux-cheatsheet) |
+| 📂 **Microsoft CheatSheet: Fundamentals to Advanced (PT)** | [View](https://tbastosc.github.io/microsoft-cheatsheet) |
+
+---
+
+Some tools used:
 
 | Technology | Tools |
 |---|---|
@@ -19,7 +27,7 @@ Some tools used:
 | **Sandboxing (Dynamic Analysis)** | ![AnyRun](https://img.shields.io/badge/Any.Run-E4002B?style=flat-square) ![Cuckoo](https://img.shields.io/badge/Cuckoo%20%2F%20CAPE%20Sandbox-F4A900?style=flat-square) |
 | **Reverse Engineering (Static Analysis)** | ![Ghidra](https://img.shields.io/badge/Ghidra-5C8A00?style=flat-square) ![IDAPro](https://img.shields.io/badge/IDA%20Pro-0057A3?style=flat-square) ![CLI](https://img.shields.io/badge/strings%20%2F%20binwalk%20%2F%20file-4B4B4B?style=flat-square) |
 | **Offensive / Adversary Emulation** | ![Kali Linux](https://img.shields.io/badge/Kali_Linux-557C94?style=flat-square&logo=kalilinux&logoColor=white) ![Metasploit](https://img.shields.io/badge/Metasploit-2596CD?style=flat-square&logo=metasploit&logoColor=white) ![MITRE Caldera](https://img.shields.io/badge/MITRE_Caldera-ED1C24?style=flat-square) |
-| **Vulnerability Management** | ![Tenable Nessus](https://img.shields.io/badge/Tenable_Nessus-00C1DE?style=flat-square) ![OpenVAS](https://img.shields.io/badge/OpenVAS-78B62E?style=flat-square) ![Risk assessment](https://img.shields.io/badge/Risk_assessment-4B5563?style=flat-square) ![GRC](https://img.shields.io/badge/GRC-4B5563?style=flat-square) ![Nmap](https://img.shields.io/badge/Nmap-2C3E50?style=flat-square&logo=nmap&logoColor=white) |
+| **Vulnerability Management** | ![Tenable Nessus](https://img.shields.io/badge/Tenable_Nessus-00C1DE?style=flat-square) ![OpenVAS](https://img.shields.io/badge/OpenVAS-78B62E?style=flat-square) ![Nmap](https://img.shields.io/badge/Nmap-2C3E50?style=flat-square&logo=nmap&logoColor=white) |
 | **Identity & Access Investigation** | ![EntraID](https://img.shields.io/badge/Microsoft%20Entra%20ID%20Logs-0078D4?style=flat-square) ![Active Directory](https://img.shields.io/badge/Active_Directory-0078D4?style=flat-square) ![GPO](https://img.shields.io/badge/GPO-4B5563?style=flat-square) ![BloodHound](https://img.shields.io/badge/BloodHound-FF0000?style=flat-square) |
 | **Living-off-the-Land References** | ![GTFOBins](https://img.shields.io/badge/GTFOBins%20(Linux)-C21807?style=flat-square) ![LOLBAS](https://img.shields.io/badge/LOLBAS%20(Windows)-0078D4?style=flat-square) |
 | **Cloud Security** | ![DefenderCloud](https://img.shields.io/badge/Microsoft%20Defender%20for%20Cloud-0078D4?style=flat-square) ![Azure](https://img.shields.io/badge/Azure-0078D4?style=flat-square) ![AWS](https://img.shields.io/badge/AWS-232F3E?style=flat-square) ![Google Cloud](https://img.shields.io/badge/Google_Cloud-4285F4?style=flat-square&logo=googlecloud&logoColor=white) ![Log Analytics](https://img.shields.io/badge/Log_Analytics-0078D4?style=flat-square) |
