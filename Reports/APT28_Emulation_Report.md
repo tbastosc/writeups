@@ -231,19 +231,14 @@ The `run.bat` launcher executed the destructive payload **filelessly, entirely i
 
 **Note on scope:** The ransomware and disk wipe actions were deliberately limited to a single directory for safety and lab constraints. However, the **intent** of APT28 in such operations is not financial extortion but rather **mass disruption, destruction, and strategic destabilization**. The group’s history (e.g., NotPetya in 2017) shows a clear preference for sabotage over ransom.
 
-**Figure 14:** Steganography script and output  
+**Figure 12:** Steganography script and output  
 <img width="637" height="415" alt="image" src="https://github.com/user-attachments/assets/c0aa4c87-c8dd-4c09-8676-10a56c6b8618" />
 
-**Figure 12:** SYSVOL upload and GPO  
+**Figure 13:** SYSVOL upload and GPO  
 <img width="651" height="180" alt="ksnip_20260303-001846(3)" src="https://github.com/user-attachments/assets/0be03589-4c72-45d9-a9cb-422c138d2773" />
 
-
-
-
-
-**Figure 13:** Ransomware note  
-`[Figure 11: Simulated NotPetya ransom note]`
-
+**Figure 14:** Ransomware note  
+<img width="1357" height="700" alt="ksnip_20260302-173037(2)" src="https://github.com/user-attachments/assets/fbe3624e-4ddf-458a-a881-10a8deda331d" />
 
 
 [^1]: The Sandworm Team used this exact GPO/SYSVOL technique to distribute the Prestige ransomware in 2022, reinforcing the real‑world impact of this method.
@@ -293,6 +288,7 @@ The `run.bat` launcher executed the destructive payload **filelessly, entirely i
 |-----------|-------|---------|
 | NTLM (`madAdmin`) | `31d6cfe0d16ae931b73c59d7e0c089c0` | Pass‑the‑Hash to Domain Controller via Impacket `psexec.py` |
 | LSASS Dump (MD5) | `d41d8cd98f00b204e9800998ecf8427e` | Extracted from `C:\Windows\Temp\lsass.dmp` |
+| `run.bat` (SHA256) | `822162069d7f93abe4ad34d31f8ef2d2d9ad80dba9495977a70cfd2febdfa6d1` | Reference IOC from public analysis – APT28-like batch script |
 | Ransomware Payload (SHA256) | `52b6fb40e7efb09c2bebe8550178e7e30009600bdedd1acae085d753761b7598` | `encrypt4.bat` extracted from `SplashScreen.png` via steganography |
 | Inveigh (SHA256) | `e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855` | Attempted execution – blocked by AMSI |
 
@@ -326,8 +322,9 @@ This simulation demonstrates that APT28’s effectiveness relies on Living‑off
 
 ## Appendix: MITRE Navigator Layer
 
-**Figure 14:** MITRE ATT&CK Navigator layer (red = executed techniques)  
-`[Figure 13: Screenshot of MITRE Navigator with highlighted techniques]`
+**Figure 15:** MITRE ATT&CK Navigator layer (red = executed techniques)  
+<img width="1551" height="738" alt="ksnip_20260302-235148" src="https://github.com/user-attachments/assets/f619209b-a49c-4b1f-b889-5544d4f4f6f9" />
+
 
 ---
 
