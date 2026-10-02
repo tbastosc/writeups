@@ -210,7 +210,7 @@ A new session was established on the Domain Controller with SYSTEM privileges.
 
 Once on the Domain Controller, the attacker established persistence via DLL Search Order Hijacking. The main executable that runs is legitimate, and the malware “lives” inside processes that the user considers normal. This technique ensures long‑term access without triggering suspicious process creation.
 
-**Figure 11:** DLL Search Order Hijacking persistence on DC  
+**Figure 12:** DLL Search Order Hijacking persistence on DC  
 
 <img width="729" height="120" alt="ksnip_20260302-212552" src="https://github.com/user-attachments/assets/3aad2b63-c805-468e-bbaf-eff48bee89eb" />
 <img width="822" height="86" alt="ksnip_20260303-001846(2)" src="https://github.com/user-attachments/assets/b0617801-52b6-42b7-8715-dd0bfa6e377e" />
@@ -233,13 +233,18 @@ The `run.bat` launcher executed the destructive payload **filelessly, entirely i
 
 **Note on scope:** The ransomware and disk wipe actions were deliberately limited to a single directory for safety and lab constraints. However, the **intent** of APT28 in such operations is not financial extortion but rather **mass disruption, destruction, and strategic destabilization**. The group’s history (e.g., NotPetya in 2017) shows a clear preference for sabotage over ransom.
 
-**Figure 12:** Steganography script and output  
-<img width="637" height="415" alt="image" src="https://github.com/user-attachments/assets/c0aa4c87-c8dd-4c09-8676-10a56c6b8618" />
+**Figure 13:** Steganography script encoder and decoder
+<img width="1227" height="504" alt="image" src="https://github.com/user-attachments/assets/e5b418e1-7b54-4b16-841e-f9a4b4a1dbc3" />
 
-**Figure 13:** SYSVOL upload and GPO  
+
+**Figure 14:** Steganography image comparison
+<img width="832" height="420" alt="image" src="https://github.com/user-attachments/assets/47ef7ede-e3f2-4f90-a6a0-16ab07f507d1" />
+
+
+**Figure 15:** SYSVOL upload and GPO  
 <img width="651" height="180" alt="ksnip_20260303-001846(3)" src="https://github.com/user-attachments/assets/0be03589-4c72-45d9-a9cb-422c138d2773" />
 
-**Figure 14:** Ransomware note  
+**Figure 16:** Ransomware note  
 <img width="1357" height="700" alt="ksnip_20260302-173037(2)" src="https://github.com/user-attachments/assets/fbe3624e-4ddf-458a-a881-10a8deda331d" />
 
 
@@ -380,7 +385,7 @@ This simulation demonstrates that APT28’s effectiveness relies on Living‑off
 
 ## Appendix: MITRE Navigator Layer
 
-**Figure 15:** MITRE ATT&CK Navigator layer (red = executed techniques)  
+**Figure 17:** MITRE ATT&CK Navigator layer (red = executed techniques)  
 <img width="1551" height="738" alt="ksnip_20260302-235148" src="https://github.com/user-attachments/assets/f619209b-a49c-4b1f-b889-5544d4f4f6f9" />
 
 
