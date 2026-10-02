@@ -1,7 +1,9 @@
 # Red Team Attack Simulation – APT28 (Fancy Bear) Emulation
 
 **Author:** Tiago Bastos  
-**Date:** March 2026 
+
+**Date:** March 2026
+
 **Classification:** Technical Report  - UFCD - ATTACK Simulation
 
 > **⚠️ Educational Disclaimer**
