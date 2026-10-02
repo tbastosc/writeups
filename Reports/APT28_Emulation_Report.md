@@ -296,12 +296,68 @@ The `run.bat` launcher executed the destructive payload **filelessly, entirely i
 
 ## 7. Impact Assessment
 
+### 7.1 Scope of Compromise
+
+| Asset | Hostname | IP | Privilege Achieved | Compromise Type |
+|-------|----------|----|--------------------|-----------------|
+| Workstation | tiagow10 | 192.168.1.10 | SYSTEM / HIGH | Full compromise, persistence, data exfiltration |
+| Domain Controller | targetDC | 192.168.1.200 | SYSTEM (Domain Admin equivalent) | Full domain compromise, GPO abuse, destructive payload |
+| Active Directory Domain | mad.local | – | Full control | GPO modification, domain-wide payload distribution |
+| User Data | cyber (profile) | – | – | Exfiltration of `.pst` / `.ost` email archives |
+
+### 7.2 CIA Triad Impact
+
 | CIA Triad | Impact Level | Justification |
 |-----------|--------------|---------------|
-| Confidentiality | **High** | Full domain compromise, LSASS dump, email exfiltration |
-| Integrity | **High** | GPO modification, ransomware encryption |
-| Availability | **Critical** | Ransomware encrypts files, potential disk wipe |
-| **Overall Risk** | **Critical** | Complete domain takeover and destructive impact |
+| Confidentiality | ![High](https://img.shields.io/badge/Impact-High-red?style=flat-square) | LSASS dump exposed domain credentials; email archives (`.pst`/`.ost`) exfiltrated; full AD enumeration |
+| Integrity | ![High](https://img.shields.io/badge/Impact-High-red?style=flat-square) | GPO modification, SYSVOL payload injection, destructive payload (disk content wipe + encryption) |
+| Availability | ![Critical](https://img.shields.io/badge/Impact-Critical-darkred?style=flat-square) | Disk content wipe followed by ransomware encryption rendered files unrecoverable; domain-wide blast radius |
+| **Overall Risk** | ![Critical](https://img.shields.io/badge/Impact-Critical-darkred?style=flat-square) | Complete domain takeover with destructive impact on availability and integrity |
+
+### 7.3 Business Impact
+
+| Dimension | Impact | Notes |
+|-----------|--------|-------|
+| **Financial** | ![Critical](https://img.shields.io/badge/Risk-Critical-darkred?style=flat-square) | Full domain rebuild, forensic investigation, potential regulatory fines, operational downtime |
+| **Operational** | ![Critical](https://img.shields.io/badge/Risk-Critical-darkred?style=flat-square) | Complete loss of domain services, file shares, email, authentication; recovery requires full restoration |
+| **Reputational** | ![High](https://img.shields.io/badge/Risk-High-red?style=flat-square) | Public disclosure of breach, loss of client trust, damage to brand |
+| **Legal / Regulatory** | ![High](https://img.shields.io/badge/Risk-High-red?style=flat-square) | Potential GDPR notification obligations (EU), NIS2 compliance breaches, contractual penalties |
+| **Strategic** | ![High](https://img.shields.io/badge/Risk-High-red?style=flat-square) | Alignment with APT28 objectives: espionage, destabilisation, and sabotage rather than financial gain |
+
+### 7.4 Detection & Response Evaluation
+
+| Defence Control | Outcome | Observations |
+|-----------------|---------|--------------|
+| Windows Defender | **Disabled** (lab constraint) | Not evaluated; would likely have blocked several stages (LSASS dump, `mshta.exe`) |
+| AMSI | ![Blocked](https://img.shields.io/badge/Result-Blocked-yellow?style=flat-square) | Successfully blocked Inveigh execution, forcing the attacker to pivot to LSASS dump |
+| Wazuh Agent | ![No Alert](https://img.shields.io/badge/Result-No%20Alert-lightgrey?style=flat-square) | Installed on the victim but did not generate alerts during the simulation |
+| EDR / Behavioural Monitoring | ![Not Present](https://img.shields.io/badge/Result-Not%20Present-lightgrey?style=flat-square) | No process lineage, memory, or network anomaly detection in place |
+| Network Monitoring | ![Not Present](https://img.shields.io/badge/Result-Not%20Present-lightgrey?style=flat-square) | BITS exfiltration and Covenant HTTP C2 were not detected |
+| Least Privilege | ![Weak](https://img.shields.io/badge/Result-Weak-red?style=flat-square) | `madAdmin` hash reuse enabled lateral movement to DC |
+
+### 7.5 Risk Rating
+
+Using a **Likelihood × Impact** model:
+
+| Factor | Rating | Justification |
+|--------|--------|---------------|
+| **Likelihood** | ![High](https://img.shields.io/badge/Risk-High-red?style=flat-square) | A single phishing email led to full compromise; no exploit chaining beyond one CVE was required |
+| **Impact** | ![Critical](https://img.shields.io/badge/Risk-Critical-darkred?style=flat-square) | Domain-wide destruction and data loss |
+| **Overall Risk** | ![Critical](https://img.shields.io/badge/Risk-Critical-darkred?style=flat-square) | Immediate remediation required |
+
+### 7.6 Mitigation Recommendations
+
+| Phase | Recommendation | MITRE Control |
+|-------|----------------|---------------|
+| Initial Access | Enforce attachment sandboxing and macro‑free policies; user awareness training | M1017, M1018 |
+| Execution | Block `mshta.exe` and other LOLBins for non‑admin users; enable ASR rules | M1038, M1042 |
+| Persistence | Monitor COM hijack registry paths (`HKCU\Software\Classes\...`); baseline autoruns | M1040, M1044 |
+| Credential Access | Enable LSASS protection (RunAsPPL), Credential Guard; monitor `comsvcs.dll` MiniDump | M1043, M1045 |
+| Lateral Movement | Enforce tiered admin model; disable NTLM where possible; monitor PsExec/WinRM | M1026, M1032 |
+| Collection / Exfil | Monitor BITS transfers; restrict outbound HTTP from workstations; DLP on email archives | M1037, M1057 |
+| Impact | Restrict GPO modification rights; monitor SYSVOL changes; offline backups | M1015, M1047 |
+
+> **Note on simulated scope:** The destructive payload (disk content wipe `T1561.001` + ransomware `T1486`) was limited to a single dummy directory for safety. However, the GPO/scheduled task mechanism could have achieved domain‑wide destruction. The intent of APT28 in such operations is **mass disruption, destruction, and strategic destabilization**, not financial gain.
 
 ---
 
