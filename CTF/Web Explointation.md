@@ -7,7 +7,8 @@ Inspecting application storage via browser Developer Tools after authenticating 
 **Mitre** Tactic: Credential Access (TA0006)
 **Mitre Technique:** Steal Web Session Cookie (T1539)
 
-<img width="1096" height="258" alt="image" src="https://github.com/user-attachments/assets/c7c89ffe-ca7c-4b14-8229-1f25b685a963" />
+<img width="788" height="185" alt="image" src="https://github.com/user-attachments/assets/ec4e6dbd-2f08-4f0e-8825-fe7b1eb19353" />
+
 
 Fix: Replace insecure encoding with server-side sessions or cryptographically signed/encrypted tokens (such as JWE), and enforce HttpOnly, Secure, and SameSite cookie flags.
 
