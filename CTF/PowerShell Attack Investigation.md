@@ -1,4 +1,4 @@
-This is a lab from codelivly.
+This is a lab from Codelivly SOC Lab - PowerShell Attack Investigation
 
 # Incident brief - Northwind Logistics
 
