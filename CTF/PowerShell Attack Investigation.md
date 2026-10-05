@@ -2,6 +2,8 @@ This is a lab from codelivly.
 
 # Incident brief - Northwind Logistics
 
+## Summary
+
 An Accounts Payable user opened an invoice attachment that rendered blank and flashed a window. Sysmon, PowerShell and Wazuh data show **WINWORD.EXE on WKS-4412 launched a hidden, encoded PowerShell command** that downloaded a payload to `C:\Users\Public\svchost-update.dat` and executed it with `rundll32.exe`. The key challenge was that the encoded-command rule (92052) fires constantly in this estate, so the malicious event had to be found through **process lineage**, not the encoding itself.
 
 ## Evidence 
