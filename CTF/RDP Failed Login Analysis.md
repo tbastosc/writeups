@@ -139,7 +139,7 @@ In the events reviewed, `adesina`, `kchen` and `rpatel` had no successful logon 
 | 5 | Country of that IP | Brazil (Sao Paulo) | `203.0.113.0/24` in `geoip-lookup.csv`, listed as a hosting provider. |
 | 6 | Time of the malicious logon | `2026-07-08 09:31:15` | The 4624 event for `eabiola` from `203.0.113.88` (UTC). |
 | 7 | Minutes between the two successful logons | **79** | 08:12:15Z (from `10.10.4.37`, Lagos HQ) to 09:31:15Z (from Sao Paulo) is 1h 19m. Lagos to Sao Paulo is about 6,000 km, which would need about 4,550 km/h. |
-| 8 | MITRE technique: abusing an internet-facing remote access service | `T1133` | External Remote Services. RDP exposed to the internet was the entry point. |
+| 8 | MITRE under Initial Access technique: abusing an internet-facing remote access service | `T1133` | External Remote Services. RDP exposed to the internet was the entry point. https://attack.mitre.org/techniques/T1133/ |
 
 ---
 
