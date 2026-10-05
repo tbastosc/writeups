@@ -46,10 +46,14 @@ Checked the wazuh rule 92100 alert:
 <img width="1254" height="61" alt="image" src="https://github.com/user-attachments/assets/9be06955-61c3-4c56-97d3-58bd608dc1cc" />
 
 That's how o initialy started analysing and collecting context for investigation, let's take a look into the questions and break them. Most of then already could be answered.
-Q1. Which host did the malicious PowerShell run on? `WKS-4412`
-Q2. Which user account was it running as? (username only, without the NWL\ domain prefix), answer, `r.castellanos`
-Q3. Which parent process spawned it? (image name, or the full path), the process that started the event `WINWORD.EXE`
-Q4. When was that PowerShell process created? (YYYY-MM-DD HH:MM:SS, UTC)
+
+Q1. Which host did the malicious PowerShell run on? `WKS-4412`.
+
+Q2. Which user account was it running as? (username only, without the NWL\ domain prefix), answer, `r.castellanos`.
+
+Q3. Which parent process spawned it? (image name, or the full path), the process that started the event `WINWORD.EXE`.
+
+Q4. When was that PowerShell process created? (YYYY-MM-DD HH:MM:SS, UTC).
    For that i needed more info, because i only had colected the other timestamps in the chain, `09:41:29 is the file create of svchost-update.dat (EID 11) and the Wazuh 92100 alert`or `09:41:31 is the rundll32.exe launch, a child of PowerShell.`
 <img width="1260" height="152" alt="image" src="https://github.com/user-attachments/assets/42709e25-0106-4324-a0da-e986f94d0470" />
 answer: `2027-01-19 09:41:26`
