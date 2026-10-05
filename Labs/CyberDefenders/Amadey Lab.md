@@ -1,4 +1,4 @@
-# Amadey Lab
+# Amadey Lab - From CyberDefenders
 
 Q1) In the memory dump analysis, determining the root of the malicious activity is essential for comprehending the extent of the intrusion. What is the name of the parent process that triggered this malicious behavior?
 
