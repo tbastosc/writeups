@@ -2,46 +2,7 @@ This is a lab from codelivly.
 
 # Incident brief - Northwind Logistics
 
-**Date:** Tuesday 19 January 2027  
-**Raised by:** Service Desk, ticket NWL-SD-88214  
-**Severity on intake:** medium (pending triage)
-
-## Background
-
-Northwind Logistics is a freight forwarder with about 300 staff across two sites. Workstations are
-Windows 11, managed by Configuration Manager, with Sysmon and PowerShell script-block
-logging forwarded to Wazuh. Accounts Payable handles supplier invoices by email and opens
-attachments routinely - it is the job.
-
-## What was reported
-
-At 10:05 a member of Accounts Payable phoned the service desk. An invoice attachment had
-opened 'oddly' - the document appeared blank, and a window flashed on screen and closed.
-They were unsure which supplier it came from and carried on working.
-
-## What the SOC has so far
-
-The Wazuh feed for the day is dominated by rule 92052 (PowerShell executed with an encoded
-command), which fires constantly in this estate because the deployment tooling uses
-`-EncodedCommand` for everything. Nobody has been able to use that rule to find anything.
-
-One rule 92100 fired once. Nobody has triaged it yet.
-
-## Business impact
-
-The affected workstation has access to the supplier payment portal and a mapped drive on
-SRV-FILE-01 containing payment run files. Nothing is confirmed accessed. Finance close is
-in nine days.
-
-## Evidence
-
-| File | Contents |
-|---|---|
-| `sysmon.log` | Sysmon events, JSON Lines - process creation (EID 1) and file create (EID 11) |
-| `powershell-operational.log` | PowerShell EID 4104 script blocks, JSON Lines |
-| `wazuh-alerts.json` | the day's Wazuh alerts, JSON Lines |
-| `asset-inventory.csv` | host ownership, roles and approved ranges |
-| `powershell-reference.md` | how to read these logs, and how to decode an encoded command |
+An Accounts Payable user opened an invoice attachment that rendered blank and flashed a window. Sysmon, PowerShell and Wazuh data show **WINWORD.EXE on WKS-4412 launched a hidden, encoded PowerShell command** that downloaded a payload to `C:\Users\Public\svchost-update.dat` and executed it with `rundll32.exe`. The key challenge was that the encoded-command rule (92052) fires constantly in this estate, so the malicious event had to be found through **process lineage**, not the encoding itself.
 
 ## Investigation Actions
 
@@ -72,7 +33,6 @@ Looking at EID 11 file creates in the same window for dropped files (temp, AppDa
 
 Checked the wazuh rule 92100 alert:
 <img width="1254" height="61" alt="image" src="https://github.com/user-attachments/assets/9be06955-61c3-4c56-97d3-58bd608dc1cc" />
-
 
 That's how o initialy started analysing and collecting context for investigation, let's take a look into the questions and break them. Most of then already could be answered.
 Q1. Which host did the malicious PowerShell run on? `WKS-4412`
@@ -106,12 +66,55 @@ Q10: Encoding technique
 https://attack.mitre.org/techniques/T1027/
 
 
-## IR 
-#Containment: 
-Isolate WKS-4412, revoke r.castellanos's payment-portal session, block the external host at the proxy, hunt the dropped hash estate-wide, and check whether the same attachment reached other Accounts Payable mailboxes.
+## Indicators of compromise
 
-#Preserve evidence:
-Capture a memory image, then a disk image or EDR triage package, before any cleanup.
+| Type | Value |
+|---|---|
+| Domain | `cdn-updates.contoso-delivery.invalid` |
+| URL | `http://cdn-updates.contoso-delivery.invalid/upd/pkg.bin` |
+| File | `C:\Users\Public\svchost-update.dat` |
+| SHA-256 | `9f2b8c41d7e63a05b8f14c92e7d3a6b0c5f8e2149a7d63b0f4e8c1a5d92b7e360` |
+| Host / user | `WKS-4412` / `NWL\r.castellanos` |
+
+## Timeline (UTC, 2027-01-19)
+
+| Time | Event | Source |
+|---|---|---|
+| 09:41:26 | `WINWORD.EXE` spawns `powershell.exe -NoP -W Hidden -Exec Bypass -EncodedCommand ...` | Sysmon EID 1 |
+| 09:41:29 | `svchost-update.dat` written to `C:\Users\Public\` | Sysmon EID 11, Wazuh 92100 |
+| 09:41:31 | `rundll32.exe C:\Users\Public\svchost-update.dat,Start` executed | Sysmon EID 1 |
+| 10:05 | User phones the service desk (about 24 minutes later) | Incident brief |
+
+## Incident response
+
+**Contain**
+- Isolate WKS-4412 with EDR network containment (don't power off, to keep memory).
+- Reset r.castellanos's credentials and revoke active sessions, including the payment portal.
+- Block the download domain at DNS, proxy and firewall.
+- Notify Finance and the portal provider to hold payee or bank-detail changes.
+
+**Preserve evidence**
+- Capture memory, then a disk image or EDR triage package, before cleanup.
+- Collect the dropped file for sandbox analysis.
+- Retrieve the original email (headers, sender, attachment) from the mail gateway.
+
+**Scope**
+- Hunt the hash, filename and domain estate-wide.
+- Find and quarantine other copies of the email, especially in other Accounts Payable mailboxes.
+- Review SRV-FILE-01 access logs for the user from 09:41 onward, since it holds payment run files.
+- Look for persistence and lateral movement from WKS-4412.
+
+**Eradicate and recover**
+- Rebuild WKS-4412 from a known-good image.
+- Rotate credentials the user could reach.
+- Have Finance verify pending payments out of band.
+
+## Detection improvements
+
+- **Alert on Office apps spawning interpreters** (`WINWORD.EXE`, `EXCEL.EXE`, `OUTLOOK.EXE` starting `powershell.exe`, `cmd.exe`, `wscript.exe`). This is high-fidelity, unlike rule 92052.
+- **Triage rule 92100.** It fired once at 09:41:29 and nobody looked at it.
+- Enable the ASR rule "Block all Office applications from creating child processes".
+- Tune 92052 to exclude known deployment parents and flag `-W Hidden` with `-Exec Bypass`.
 
 
 
