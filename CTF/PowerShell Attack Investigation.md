@@ -6,7 +6,12 @@ An Accounts Payable user opened an invoice attachment that rendered blank and fl
 
 ## Evidence 
 
-| File | Contents ||---|---|| `sysmon.log` | Sysmon events, JSON Lines - process creation (EID 1) and file create (EID 11) || `powershell-operational.log` | PowerShell EID 4104 script blocks, JSON Lines || `wazuh-alerts.json` | the day's Wazuh alerts, JSON Lines || `asset-inventory.csv` | host ownership, roles and approved ranges || `powershell-reference.md` | how to read these logs, and how to decode an encoded command |
+| File | Contents |
+|---|---|
+| `sysmon.log` | Sysmon events, JSON Lines - process creation (EID 1) and file create (EID 11) |
+| `powershell-operational.log` | PowerShell EID 4104 script blocks, JSON Lines |
+| `wazuh-alerts.json` | the day's Wazuh alerts, JSON Lines || `asset-inventory.csv` | host ownership, roles and approved ranges |
+| `powershell-reference.md` | how to read these logs, and how to decode an encoded command |
 
 ## Investigation Actions
 
