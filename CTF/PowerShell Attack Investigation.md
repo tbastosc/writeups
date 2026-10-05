@@ -4,7 +4,9 @@ This is a lab from codelivly.
 
 An Accounts Payable user opened an invoice attachment that rendered blank and flashed a window. Sysmon, PowerShell and Wazuh data show **WINWORD.EXE on WKS-4412 launched a hidden, encoded PowerShell command** that downloaded a payload to `C:\Users\Public\svchost-update.dat` and executed it with `rundll32.exe`. The key challenge was that the encoded-command rule (92052) fires constantly in this estate, so the malicious event had to be found through **process lineage**, not the encoding itself.
 
-## Evidence | File | Contents ||---|---|| `sysmon.log` | Sysmon events, JSON Lines - process creation (EID 1) and file create (EID 11) || `powershell-operational.log` | PowerShell EID 4104 script blocks, JSON Lines || `wazuh-alerts.json` | the day's Wazuh alerts, JSON Lines || `asset-inventory.csv` | host ownership, roles and approved ranges || `powershell-reference.md` | how to read these logs, and how to decode an encoded command |
+## Evidence 
+
+| File | Contents ||---|---|| `sysmon.log` | Sysmon events, JSON Lines - process creation (EID 1) and file create (EID 11) || `powershell-operational.log` | PowerShell EID 4104 script blocks, JSON Lines || `wazuh-alerts.json` | the day's Wazuh alerts, JSON Lines || `asset-inventory.csv` | host ownership, roles and approved ranges || `powershell-reference.md` | how to read these logs, and how to decode an encoded command |
 
 ## Investigation Actions
 
