@@ -1,5 +1,5 @@
 # writeups
-Writeups and walktroughs from /CTFs /Challenges /Sherlocks /Lab Investigations
+Writeups and walktroughs from /CTFs /Challenges /Sherlocks /Lab Investigations /Reports /Notes (study)
 
 ---
 
