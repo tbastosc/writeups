@@ -20,6 +20,8 @@ At **02:14:33 UTC** on 2026-04-22 the service account `svc_backup` opened an **R
 
 This is a compromised service account used for lateral movement, followed by persistence and privilege escalation.
 
+Alongside with recomendations, I addressed **Sigma rule** for forder detections to mitigate the previous lack of visivility. (added 7 out 2026)
+
 ---
 
 ## 2. Investigation Steps
