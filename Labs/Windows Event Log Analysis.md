@@ -206,7 +206,6 @@ Add helpdesk_svc to Administrators (T1098)      <-- privilege escalation
 - **Why T1136.001 and not T1136.002:** the new account's domain field is the server name `FIN-FS-02`, which indicates a **local** account on the file server. The member DN in Event 4732 (`CN=helpdesk_svc,CN=Users,DC=abcfin,DC=local`) is in a domain-style format, so confirm on the host that the account is local before closing the case. If it turns out to be a domain account, the technique becomes **T1136.002**.
 - **Why this is persistence:** `helpdesk_svc` gives the attacker a second, admin-level way back in, so changing the `svc_backup` password alone would not remove their access.
 - **Likely compromised host:** WKS-2291 is probably compromised and should be treated as the pivot point.
-- **Not examined:** the 14 failed logons (Event 4625), which could show credential guessing against `svc_backup` before the successful logon.
 
 ---
 
@@ -220,7 +219,6 @@ Add helpdesk_svc to Administrators (T1098)      <-- privilege escalation
 **Follow-up investigation**
 - Search all logs for any use of `helpdesk_svc` after 02:19:41Z.
 - Retrieve the Event 4634 (logoff) for `0x3E7A91C` to get the session duration.
-- Review the 14 Event 4625 failures for brute-force or password-spray activity.
 - Review what `svc_backup` can access and what was read or copied during the session (it holds `SeBackupPrivilege`).
 - Review why `svc_backup` holds `SeTakeOwnershipPrivilege`, which the admin accounts do not have.
 
@@ -236,3 +234,118 @@ Add helpdesk_svc to Administrators (T1098)      <-- privilege escalation
 | 6 | What NEW account was created during that session? | **`helpdesk_svc`** | Step 8 (Event 4720) |
 | 7 | Which privileged group was the new account added to? | **Administrators** (local, FIN-FS-02) | Step 8 (Event 4732) |
 | 8 | Which MITRE ATT&CK technique covers creating an account to keep access? | **T1136.001** (Create Account: Local Account; parent technique **T1136**) | Section 6 |
+
+
+## 9. - Detection Engineering
+### Build Sigma Rule
+
+The investigation showed that no single event was enough to catch this attack. A successful RDP logon, an account creation and a group change are all routine on their own, and the source IP was an approved internal address. Only the sequence inside one logon session (same Logon ID) was malicious. The next phase was therefore to turn the manual analysis into detection logic.
+
+- **Rule 1, suspicious RDP logon:** flags Type 10 logons from outside the approved IT range `10.10.4.0/24`. 
+- **Building blocks:** account creation (4720) and group membership change (4732/4728/4756) are not alerted on their own because they would be too noisy. They are used only as inputs to the aggregate rule.
+- **Aggregate rule (critical):** fires when a suspicious RDP logon is followed, in the same session and within 10 minutes, by an account creation and a group add. This maps to T1021.001, T1136.001 and T1098. The real attack took 308 seconds, so a 10 minute window catches it with margin, while a 5 minute window would have missed it.
+- **Validation:** the logic was tested with `jq` and Python against the event log, and it matches the `svc_backup` session (`0x3E7A91C`) and none of the admin sessions.
+- **Known limit:** an attacker pivoting from a host inside `10.10.4.0/24` with a non-service account would not start the chain. Need to address that :S
+
+```yml
+title: RDP Logon From Outside the IT Subnet
+id: e92c0fc1-93ba-4a35-8077-89c82ce3d01f
+status: experimental
+description: Any account doing an RDP logon (Type 10) from a source outside the approved IT range 10.10.4.0/24.
+tags:
+    - attack.t1021.001
+logsource:
+    product: windows
+    service: security
+detection:
+    selection:
+        EventID: 4624
+        LogonType: 10
+    it_subnet:
+        IpAddress|cidr: '10.10.4.0/24'
+    condition: selection and not it_subnet
+level: high
+---
+# Building blocks for the aggregate rule below. Too noisy to alert on alone.
+title: Building Block - RDP Logon (T1021.001)
+id: 9d0bcc6d-fcae-438e-9523-dc42876c8911
+name: rdp_logon
+status: experimental
+description: Successful RDP logon (Type 10). Used only as input to the aggregate rule.
+logsource:
+    product: windows
+    service: security
+detection:
+    selection:
+        EventID: 4624
+        LogonType: 10
+    condition: selection
+level: informational
+---
+title: Building Block - Account Created (T1136.001)
+id: 856a9253-471f-4b5f-bf61-aaad1775c080
+name: account_created
+status: experimental
+description: User account created (4720). Used only as input to the aggregate rule.
+logsource:
+    product: windows
+    service: security
+detection:
+    selection:
+        EventID: 4720
+    condition: selection
+level: informational
+---
+title: Building Block - Member Added to Group (T1098)
+id: 5c1f6a52-6f3a-4c0e-9b1a-3a8d7e2b4f10
+name: group_member_added
+status: experimental
+description: Member added to a local, global or universal security group (4732, 4728, 4756). Used only as input to the aggregate rule.
+logsource:
+    product: windows
+    service: security
+detection:
+    selection:
+        EventID:
+            - 4732
+            - 4728
+            - 4756
+    condition: selection
+level: informational
+---
+title: RDP Logon, Account Creation and Group Add in One Session
+id: 93bdd2ea-2c6e-405d-8d01-19911d57515a
+name: rdp_create_account_group_add
+status: experimental
+description: |
+    High value aggregate rule. In ONE logon session (same Logon ID), an RDP logon (T1021.001)
+    is followed by an account creation (T1136.001) and then a group membership change (T1098).
+    The name of the account and the source IP do not matter. Only the chain does.
+    The Logon ID is TargetLogonId on the 4624 and SubjectLogonId on the 4720 and 4732,
+    so the alias SessionId maps them together.
+tags:
+    - attack.lateral-movement
+    - attack.t1021.001
+    - attack.persistence
+    - attack.t1136.001
+    - attack.t1098
+    - attack.privilege-escalation
+correlation:
+    type: temporal_ordered
+    rules:
+        - rdp_logon
+        - account_created
+        - group_member_added
+    group-by:
+        - Computer
+        - SessionId
+    aliases:
+        SessionId:
+            rdp_logon: TargetLogonId
+            account_created: SubjectLogonId
+            group_member_added: SubjectLogonId
+    timespan: 30m
+falsepositives:
+    - An administrator who RDPs in, creates a user and adds it to a group in one sitting. Check the change ticket.
+level: critical
+```
