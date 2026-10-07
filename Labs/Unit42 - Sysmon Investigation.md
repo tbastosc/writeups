@@ -156,17 +156,20 @@ retrieved a single event, the end of the process.
 
 ## Attack timeline
 
-| Step | Activity | Event ID |
-|---|---|---|
-| 1 | User downloads the lure from Dropbox using Firefox | 15 |
-| 2 | User runs `Preventivo24.02.14.exe.exe` from Downloads via explorer.exe | 1 |
-| 3 | Dropper writes files to `AppData\Roaming\Photo and Fax Vn\...` | 11 |
-| 4 | Timestomping on dropped files (PDF, `once.cmd`, etc.) | 2 |
-| 5 | DNS lookup of `www.example.com` | 22 |
-| 6 | TCP/80 connection to `93.184.216.34` | 3 |
-| 7 | `msiexec.exe` runs the installer | 1 |
-| 8 | Scripts deleted (16 files) | 23 |
-| 9 | Dropper terminates itself at `2024-02-14 03:41:58` | 5 |
+All timestamps are as recorded in the Sysmon logs.
+
+| Step | Time | Activity | Event ID |
+|---|---|---|---|
+| 1 | `03:41:26.459` | User downloads the lure from Dropbox using Firefox | 15 / 11 |
+| 2 | `03:41:56.538` | User runs `Preventivo24.02.14.exe.exe` from Downloads, started by `explorer.exe` | 1 |
+| 3 | `03:41:56.955` | DNS lookup of `www.example.com` | 22 |
+| 4 | `03:41:57.159` | TCP/80 connection to `93.184.216.34` | 3 |
+| 5 | `03:41:57.545` to `03:41:58.420` | Timestomping on 16 dropped files (PDF, `once.cmd`, etc.) | 2 |
+| 6 | `03:41:57.780` to `03:41:58.748` | 26 scripts/files deleted | 23 |
+| 7 | `03:41:57.905` | `msiexec.exe` runs the installer | 1 |
+| 8 | `03:41:58.389` | Dropper writes files to `AppData\Roaming\Photo and Fax Vn\...` | 11 |
+| 9 | `03:41:58.799` | Dropper terminates itself | 5 |
+
 
 ---
 
