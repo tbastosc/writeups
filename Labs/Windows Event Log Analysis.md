@@ -245,7 +245,7 @@ The investigation showed that no single event was enough to catch this attack. A
 
 - **Rule 1, suspicious RDP logon:** flags Type 10 logons from outside the approved IT range `10.10.4.0/24`. 
 - **Building blocks:** account creation (4720) and group membership change (4732/4728/4756) are not alerted on their own because they would be too noisy. They are used only as inputs to the aggregate rule.
-- **Aggregate rule (critical):** fires when a suspicious RDP logon is followed, in the same session and within 10 minutes, by an account creation and a group add. This maps to T1021.001, T1136.001 and T1098. The real attack took 308 seconds, so a 10 minute window catches it with margin, while a 5 minute window would have missed it.
+- **Aggregate rule (critical):** fires when a suspicious RDP logon is followed, in the same session and within 30 minutes, by an account creation and a group add. This maps to T1021.001, T1136.001 and T1098. The real attack took 308 seconds, so a 30 minute window catches it with margin, while a 5 minute window would have missed it.
 - **Validation:** the logic was tested with `jq` and Python against the event log, and it matches the `svc_backup` session (`0x3E7A91C`) and none of the admin sessions.
 - **Known limit:** an attacker pivoting from a host inside `10.10.4.0/24` with a non-service account would not start the chain. Need to address that :S
 
