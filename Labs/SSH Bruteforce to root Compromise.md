@@ -62,7 +62,6 @@ First look at the log: mostly routine `cron` sessions for the `confluence` servi
 
 A burst of `Invalid user` and `Failed password` entries from a single IP, all within a few seconds. No human types credentials that fast, which points to automation (Hydra, Medusa or similar). The server even began throttling connections (`MaxStartups`) and dropped 21 of them.
 
-<img width="1259" height="632" alt="02-bruteforce-invalid-user" src="https://github.com/user-attachments/assets/8abfd695-4be1-46fc-ba66-8313843e16b3" />
 
 <img width="1028" height="306" alt="03-bruteforce-failed-password" src="https://github.com/user-attachments/assets/4eb245e3-16cc-406c-be75-90c6b94fcaf2" />
 
