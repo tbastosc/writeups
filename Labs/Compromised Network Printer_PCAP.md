@@ -65,11 +65,10 @@ To see which ports answered the scan, I filtered the **SYN/ACK** replies coming 
 ip.src == 172.31.40.241 && tcp.flags.syn == 1 && tcp.flags.ack == 1
 ```
 
-The attacker found that ports **22** and **9100** answered positively: **SSH** and the raw printing service (JetDirect). Port 9100 typically has no built-in security or password protection on the printer itself, which makes it an easy target.
+The attacker found that ports **22** and **9100** answered positively: **SSH** and the raw printing service (JetDirect), port 9100 typically has no built-in security or password protection on the printer itself, which makes it an easy target.
 
 [![image](https://github.com/user-attachments/assets/975b806b-2198-4ea4-8a09-72f009a21221)](https://github.com/user-attachments/assets/975b806b-2198-4ea4-8a09-72f009a21221)
 
-**Answer:** ports `22` and `9100`
 
 ### Step 3: Asset identification (PJL)
 
@@ -113,7 +112,6 @@ The content is a **PostScript** file disguised as a layoff notice ("Jason LAYOFF
 
 [![image](https://github.com/user-attachments/assets/1a260186-1104-4809-9557-810231198b36)](https://github.com/user-attachments/assets/1a260186-1104-4809-9557-810231198b36)
 
-**Answer:** `0:/saveDevice/SavedJobs/InProgress/scheduled.ps` (873 bytes)
 
 ### Step 6: Discovery of internal access material
 
@@ -137,7 +135,6 @@ The attacker used `FSQUERY` and `FSUPLOAD` on `internal.rdp` and extracted its c
 
 [![image](https://github.com/user-attachments/assets/14a117ed-c8f7-4207-b8c2-ae91e959fbb6)](https://github.com/user-attachments/assets/14a117ed-c8f7-4207-b8c2-ae91e959fbb6)
 
-**Answer:** `0:/backup/jumphost/2023/internal.rdp` (1192 bytes)
 
 ### Step 8: Attempt on `remote-service.ps1`
 
@@ -186,11 +183,11 @@ The capture is analyzed by packet number; absolute timestamps are not used in th
 
 | Step | Packet   | Activity                                                              | Command / Protocol     |
 | ---- | -------- | --------------------------------------------------------------------- | ---------------------- |
-| 1    | n/a      | SYN scan across multiple printer ports                                | TCP                    |
-| 2    | n/a      | Ports `22` and `9100` reply with SYN/ACK                              | TCP                    |
+| 1    | ---      | SYN scan across multiple printer ports                                | TCP                    |
+| 2    | ---     | Ports `22` and `9100` reply with SYN/ACK                              | TCP                    |
 | 3    | `131177` | Asset identified: HP LaserJet Pro 4001dn                              | PJL                    |
 | 4    | `131193` | File system enumeration begins                                        | `FSDIRLIST`            |
-| 5    | n/a      | `scheduled.ps` exfiltrated (873 bytes) after correcting the file name | `FSUPLOAD`             |
+| 5    | `131333` | `scheduled.ps` exfiltrated (873 bytes) after correcting the file name | `FSUPLOAD`             |
 | 6    | `132058` | `internal.rdp` and `remote-service.ps1` discovered                    | `FSDIRLIST`            |
 | 7    | `132095` | `internal.rdp` exfiltrated (1192 bytes)                               | `FSQUERY` / `FSUPLOAD` |
 | 8    | `132147` | Attempt on `remote-service.ps1`, no proof of exfiltration             | `FSQUERY` / `FSUPLOAD` |
@@ -203,9 +200,7 @@ The capture is analyzed by packet number; absolute timestamps are not used in th
 | Discovery         | File and Directory Discovery                               | [T1083](https://attack.mitre.org/techniques/T1083/)         | `FSDIRLIST` over `0:/` and subdirectories                             |
 | Collection        | Data from Local System                                     | [T1005](https://attack.mitre.org/techniques/T1005/)         | `FSUPLOAD` of `scheduled.ps` and `internal.rdp`                       |
 | Exfiltration      | Exfiltration Over C2 Channel                               | [T1041](https://attack.mitre.org/techniques/T1041/)         | Extraction over the same TCP/9100 session used for the commands       |
-| Credential Access | Unsecured Credentials: Credentials In Files *(potential)*  | [T1552.001](https://attack.mitre.org/techniques/T1552/001/) | RDP profile and jump host backup script; not confirmed                |
 
-> The mapping is the analyst's own. T1041 and T1552.001 are interpretations; the others follow directly from the observed traffic.
 
 ## Indicators of Compromise (IOCs)
 
