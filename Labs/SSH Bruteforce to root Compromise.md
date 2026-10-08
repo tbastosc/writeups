@@ -143,22 +143,22 @@ Ten seconds later (**06:37:34**) the attacker logs in as `cyberjunkie` (session 
 
 ## 4. Timeline of Events
 
-| Time | Source | Event |
-|---|---|---|
-| 06:31:31 | A | Brute force begins from `65.2.161.68`; sshd starts `MaxStartups` throttling |
-| 06:31:33 to 06:31:42 | A | 82 failed attempts against `admin`, `backup`, `server_adm`, `svc_account`, `root` |
-| 06:31:40 | A | **`root` password guessed**; automated session 34 opens and closes in the same second |
-| 06:32:39 | A | Throttling ends (21 connections dropped) |
-| 06:32:44 | A | **Manual root login** from `65.2.161.68` (session 37) |
-| 06:32:45 | W | **Interactive terminal `pts/1` opened** |
-| 06:34:18 | A | Group and user `cyberjunkie` created |
-| 06:34:26 | A | Password set for `cyberjunkie` |
-| 06:34:31 | A | User details modified (`chfn`) |
-| 06:35:15 | A | `cyberjunkie` added to `sudo` group |
-| 06:37:24 | A | Root session 37 ends |
-| 06:37:34 | A | **Login as `cyberjunkie`** (session 49, ~06:37:35 in `wtmp`) |
-| 06:37:57 | A | `sudo cat /etc/shadow` |
-| 06:39:38 | A | `sudo curl` downloads `linper.sh` from GitHub |
+| Time | Event |
+|---|---|
+| 06:31:31 | Brute force begins from `65.2.161.68`; sshd starts `MaxStartups` throttling |
+| 06:31:33 to 06:31:42 | 82 failed attempts against `admin`, `backup`, `server_adm`, `svc_account`, `root` |
+| 06:31:40 | **`root` password guessed**; automated session 34 opens and closes in the same second |
+| 06:32:39 |  Throttling ends (21 connections dropped) |
+| 06:32:44 |  **Manual root login** from `65.2.161.68` (session 37) |
+| 06:32:45 |  **Interactive terminal `pts/1` opened** |
+| 06:34:18 |  Group and user `cyberjunkie` created |
+| 06:34:26 |  Password set for `cyberjunkie` |
+| 06:34:31 |  User details modified (`chfn`) |
+| 06:35:15 | `cyberjunkie` added to `sudo` group |
+| 06:37:24 | Root session 37 ends |
+| 06:37:34 | **Login as `cyberjunkie`** (session 49, ~06:37:35 in `wtmp`) |
+| 06:37:57 | `sudo cat /etc/shadow` |
+| 06:39:38 |  `sudo curl` downloads `linper.sh` from GitHub |
 
 ```mermaid
 timeline
