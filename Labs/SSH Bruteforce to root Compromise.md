@@ -160,25 +160,6 @@ Ten seconds later (**06:37:34**) the attacker logs in as `cyberjunkie` (session 
 | 06:37:57 | `sudo cat /etc/shadow` |
 | 06:39:38 |  `sudo curl` downloads `linper.sh` from GitHub |
 
-```mermaid
-timeline
-    title Brutus intrusion, 2024-03-06 (UTC)
-    section Initial access
-        06:31:31 : Brute force starts from 65.2.161.68
-        06:31:40 : root password guessed (tool session 34)
-    section Foothold
-        06:32:44 : Manual root login, session 37
-        06:32:45 : Interactive terminal opened (wtmp)
-    section Persistence
-        06:34:18 : User and group cyberjunkie created
-        06:35:15 : cyberjunkie added to sudo group
-        06:37:24 : Root session closes
-    section Post-exploitation
-        06:37:34 : Login as cyberjunkie, session 49
-        06:37:57 : sudo cat /etc/shadow
-        06:39:38 : sudo curl downloads linper.sh
-```
-
 ---
 
 ## 5. MITRE ATT&CK Attack Chain
