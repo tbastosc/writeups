@@ -467,8 +467,9 @@ Immediately afterwards many of the same sessions ran `crontab -l`.
 
 This is classic botnet behaviour that installs a shared back-door key and checks for existing cron jobs.
 
-> **Screenshot placeholder**  
-> <img width="1144" height="899" alt="persistence attemp" src="https://github.com/user-attachments/assets/dfe28019-4bf4-49c0-b86d-eaefcc7165bb" />
+image x -  sample querie 
+<img width="1054" height="706" alt="image" src="https://github.com/user-attachments/assets/61004b0c-6762-4936-ae82-01b93cf96343" />
+
 
 ### 8.2 Malware captured (Dionaea)
 
