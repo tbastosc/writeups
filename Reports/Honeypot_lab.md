@@ -7,12 +7,10 @@ DEPLOYING AN INTERNET-FACING HONEYPOT - FOR THREAT INTELLIGENCE
 
 **Author:** Tiago Bastos  
 **Date:** October 2026  
-**Observation window:** ~48 hours (18–21 October 2026)  
-**Language:** English  
 
 > **Privacy / GDPR note**  
-> All public IP addresses belonging to the author and to the honeypot virtual machine will be replaced by `x.x.x.x` in any public version of this report.  
-> Attacker IPs are partially masked (first two octets retained).  
+> All public IP addresses belonging to me and to the honeypot virtual machine will be anonymized in any public version of this report.  
+> Attacker IPs are partially masked (first two octets retained for easyer perception of evidence).  
 > Credential lists and command histories are retained because they represent common attacker behaviour observed on an intentionally exposed research system.  
 > No malware binaries are published — only cryptographic hashes.
 
@@ -59,7 +57,7 @@ In a ~72-hour observation window the honeypot recorded:
 | Cowrie     | ≈ 84 500               | 797 successful logins               | 150 (successful logins) |
 | Dionaea    | ≈ 11 250               | 8 632 credential attempts           | 49                |
 | Tanner     | ≈ 11 830               | 11 817 HTTP requests                | 204               |
-| Conpot     | ≈ 1 730                | 190 OT/ICS events (local extract)   | 29                |
+| Conpot     | ≈ 1 730                | 190 OT/ICS events (local extract, 12 h only, see 6.2) | 29 (local extract) |
 | Suricata   | ≈ 725 000 (all) / 4 752 alerts after filtering | 4 752 external-relevant alerts | 405               |
 
 > **Note on Cowrie**  
@@ -70,15 +68,17 @@ In a ~72-hour observation window the honeypot recorded:
 Custom analytic rules mapped to MITRE ATT&CK (including ATT&CK for ICS) generated alerts. Three **High** severity rules produced actionable findings that were cross-verified against the raw logs:
 
 1. **Persistence Attempts** – ex: mass installation of SSH authorized_keys  
-2. **Malware captured** – 4 confirmed samples 
-3. **Payloads in POST bodies** – limited but present
+2. **Malware captured** – 4 distinct files captured (MD5 in Appendix 13), 1 identified as a trojan 
+3. **Payloads in POST bodies** – 156 alerts from a single scanner; the rule was rewritten after the evaluation (see 8.3)
 
-Operational mitigations were required after a Conpot container was driven to 100 % CPU by a single scanner.
+Operational mitigations were required after the Conpot container was driven to 100 % CPU four times by four different scanners (see 6.2.1).
+
+The 22 analytic rules were deployed as a ~72-hour evaluation. Some alerts are therefore noise, repeats or the result of misconfigured rules; this is documented in 7.1 and listed as an improvement.
 
 Total Azure cost for the period: **€15.03**.
 
 
-This project demonstrates how automated entities continuously probe exposed services while proving the utility of honeypots and SIEM integration in threat research. Operational hurdles—including, port binding conflicts, and active scanning attacks that compromised Docker service stability and mitigation strategies. The total infrastructure cost incurred was approximately 15€, funded via Azure for Students credits.
+This project demonstrates how automated entities continuously probe exposed services while proving the utility of honeypots and SIEM integration in threat research. Operational hurdles, including port binding conflicts and active scanning attacks that compromised Docker service stability, required mitigation. The total infrastructure cost incurred was approximately 15€, funded via Azure for Students credits.
 
 
 2. PROJECT OBJECTIVES
@@ -208,7 +208,7 @@ The DCR declares five custom streams:
 
 All streams set `TimeGenerated` from the original timestamp and drop noisy internal fields.
 
-## 5.2 Analytic Rules Overview (replace)
+### 5.2 Analytic Rules Overview
 
 Twenty-two scheduled rules were deployed (exported as an ARM template) and left running for the ~72 h observation window (18 to 21 October) as an evaluation. Severity distribution:
 
@@ -233,8 +233,8 @@ Twenty rules produced alerts (5,428 in total, none promoted to an incident). Two
 | Top username (all attempts)         | root (4 654 attempts)          |
 | Top password (all attempts)         | 123456                         |
 | Most common successful pair         | enable:linuxshell (454)        |
-| File downloads                      | 117 (4 unique SHA-256)         |
-| File uploads                        | 10                             |
+| File downloads                      | 117 (4 unique SHA-256, none with a source URL; 77 are the `mdrfckr` key file) |
+| File uploads                        | 10 (one is an empty file, SHA-256 `e3b0c442…`) |
 
 > The 150 unique IPs refer **only** to sources that achieved at least one successful login.  
 > The number of distinct IPs that merely opened a TCP connection (session.connect) is higher; the evidence package currently contains only the top-20 by connection volume (already > 12 000 connections from those 20 IPs alone).
@@ -255,34 +255,55 @@ Curled/wget IOC's
 
 ### 6.2 Conpot (OT/ICS)
 
-| Protocol / data_type          | Events |
-|-------------------------------|--------|
-| IEC 104                       | 75     |
-| guardian_ast                  | 70     |
-| SNMP                          | 21     |
-| Kamstrup protocol             | 16     |
-| Kamstrup management           | 6      |
-| IPMI                          | 2      |
-| **Total (local extract)**     | **190** |
-| Unique source IPs             | **29** |
+> **Data coverage.** The local raw extract holds only **12 hours** of Conpot data (21 Oct 00:31 to 12:42 UTC, 190 events). Elasticsearch holds ≈ 1 733 Conpot documents and Sentinel raised 857 OT/ICS alerts over the full ~72 h, so the table below is a sample, not the total.
 
-Top scanner: `35.195.x.x` (61 events).  
-(Elasticsearch total Conpot documents ≈ 1 733.)
+| Protocol (`data_type`) | Port | Events (local extract) | Source IPs | Of which protocol requests | MITRE ATT&CK for ICS | Sentinel rules that cover it |
+|---|---|---|---|---|---|---|
+| IEC 60870-5-104 (`IEC104`) | 2404/tcp | 75 | 5 | 0 (connection open/close only) | T0883, T0846 | OT/ICS protocol interaction, Multi-port OT scanner |
+| Guardian AST (`guardian_ast`) | 10001/tcp | 70 | 12 | 5 (`AST I20100` x3, `AST i90200` x2) | T0883, T0846 | OT/ICS protocol interaction |
+| SNMP (`snmp`) | 161/udp | 21 | 8 | 21 (`SNMPv1 Get` 7, `SNMPv2 Get` 7, `SNMPv2 Bulk` 7) | T0888 (T1602.001 Enterprise) | SNMP enumeration, SNMP flood, SNMP SET attempts |
+| Kamstrup protocol (`kamstrup_protocol`) | 1025/tcp | 16 | 2 | 0 | T0883, T0846 | OT/ICS protocol interaction |
+| Kamstrup management (`kamstrup_management_protocol`) | 50100/tcp | 6 | 1 | 0 | T0883, T0846 | OT/ICS protocol interaction |
+| IPMI (`ipmi`) | 623/udp | 2 | 1 | 1 (`GET_CHANNEL_AUTH_CAPABILITIES`) | T0888 | OT/ICS protocol interaction |
+| **Total (local extract)** | | **190** | **29** | **27** | | |
 
-## 6.2.1 Conpot 100 % CPU incident 
+Of the 190 events, 163 are connection lifecycle events (85 `NEW_CONNECTION`, 78 `CONNECTION_LOST`) and only 27 carry a protocol request. All the SNMP events are read requests (`Get`, `Bulk`); no SNMP `Set` is present in this extract, although the SNMP SET rule alerted twice in the full dataset.
+
+| Top sources (masked) | Events |
+|---|---|
+| `35.195.x.x` | 61 |
+| `205.210.x.x` | 19 |
+| `47.84.x.x` | 17 |
+| `3.129.x.x` | 15 |
+| `52.160.x.x` | 10 |
+
+Cross-check with Sentinel (alerts over the full ~72 h): OT/ICS protocol interaction 857 alerts / 156 IPs, Same IP on SSH and OT honeypots 211 / 12, Multi-port OT scanner 84 / 5, Persistent OT visitor 7 / 5, SNMP flood 6 / 1, SNMP enumeration 2 / 2, SNMP SET attempts 2 / 1, Same IP on web and SNMP 20 / 1.
+
+The port 80 (HTTP) and port 161 traffic that triggered the CPU incident (6.2.1) is not in this extract, because it falls outside the 12-hour window and Conpot HTTP produced no `data_type` rows in it.
+
+### 6.2.1 Conpot 100 % CPU incident
 
 **Impact.** Four sources, each in turn, drove the Conpot container to 100 % CPU. The first had the largest impact. While the container was pegged, Conpot stopped answering, so the sensor was blind to OT traffic until it was restarted.
 
 **Trigger.** A flood of malformed HTTP GET requests (port 80, Conpot HTTP template) combined with SNMP traffic on port 161 (UDP), with the connections dropped mid-request. The container entered a loop and kept a core at 100 % without needing further traffic.
 
-**Sources.** `77.110.x.x`, `40.78.x.x`, `189.150.x.x`, `66.132.x.x` (all later in the `block-attack1` rule). The raw logs confirm that `40.78.x.x` sent 10,006 requests to Tanner in 30 minutes on 19 Oct (08:08 to 08:38 UTC, peak 2,068 requests per minute, 5,819 distinct paths). `189.150.x.x` made 1,144 Cowrie sessions. `66.132.x.x` belongs to the Censys scanner range. `40.78.x.x` is in Microsoft's address space, so state it as "an Azure-hosted scanner" until an ASN lookup confirms it.
+**Sources.** `77.110.x.x`, `40.78.x.x`, `189.150.x.x`, `66.132.x.x` (all later in the `block-attack1` rule). The raw logs confirm that `40.78.x.x` sent 10,006 requests to Tanner in 30 minutes on 19 Oct (08:08 to 08:38 UTC, peak 2,068 requests per minute, 5,819 distinct paths). `189.150.x.x` made 1,144 Cowrie sessions. `66.132.x.x` belongs to the Censys scanner range. `40.78.x.x` is in Microsoft Azure address space (an Azure-hosted scanner; the ASN should be confirmed with a whois lookup).
 
 image x - attack to honeypot that caused 100 cpu usage to conpot container incident.
 <img width="653" height="442" alt="ksnip_20261019-101129(3)" src="https://github.com/user-attachments/assets/07a5b5c4-7962-4635-a532-e2bf687e26da" />
 <img width="1200" height="912" alt="image" src="https://github.com/user-attachments/assets/e072de24-7eb6-4aca-98dc-484577e2efe2" />
-The attacker flooded the machine with misconfigured GEt requestes and dropped connections, causing a Loop bug in the container that lead to 100% CPU usage.
+The attacker flooded the machine with malformed GET requests and dropped connections, causing a loop bug in the container that led to 100 % CPU usage.
 <img width="1038" height="692" alt="ksnip_20261019-101129(4)" src="https://github.com/user-attachments/assets/db48d835-265e-44b3-ac99-e26caf8ce90c" />
 <img width="987" height="705" alt="ksnip_20261019-190705" src="https://github.com/user-attachments/assets/acdf667a-93f0-4f8f-83d2-b47f55f53786" />
+
+**Timeline** (to be completed from the screenshots and `az monitor activity-log`):
+
+| Step | Time (UTC) | Evidence |
+|---|---|---|
+| First CPU spike | TBD | screenshot |
+| First source blocked in `block-attack1` | TBD | activity log |
+| Second, third, fourth spikes and blocks | TBD | screenshots |
+| Final mitigation in place (iptables + watchdog) | TBD | cron / iptables |
 
 **Why the block list alone failed.** Each new scanner re-triggered the bug. Blocking by source is reactive and always one incident behind.
 
@@ -290,6 +311,8 @@ The attacker flooded the machine with misconfigured GEt requestes and dropped co
 1. NSG deny rule for the offending sources (reactive).
 2. iptables rate limit, dropping after 100 requests in 30 s.
 3. A watchdog (cron plus script) that restarts the container when CPU exceeds 75 %.
+
+**Recommended next steps:** a Docker CPU limit on the Conpot container, a container health check, and an Azure Monitor alert on CPU so the first incident is detected automatically.
 
 
 
@@ -306,7 +329,8 @@ image x - Conpot Validation Logs response at MS defender
 | Unique source IPs         | **49**     |
 
 - Predominantly MySQL on port 3306 with empty passwords for `root`/`admin`/`sa`.  
-- Four binary archives present;
+- Credential attempts by service: MySQL 8,594 (port 3306), MSSQL 32 (1433), FTP 6 (21). Usernames `root`, `sa` and `admin` account for about 2,900 attempts each; 8,616 of the 8,632 passwords are empty.
+- Four distinct malware files were captured (MD5 in Appendix 13); one was identified as a trojan on VirusTotal. In the evidence package `binaries.tgz` is empty and only `binaries.tgz.1` and `.2` hold data.
 - Only cryptographic hashes are retained for the report.
 
 Virus Total Report:
@@ -322,8 +346,11 @@ Virus Total Report:
 | Unique source IPs     | **204**                        |
 | Top path              | `/` (996)                      |
 | Notable paths         | `/.env` (35), `/login`, Qualys probes |
-| Top source IP         | 40.78.x.x (10 006 requests) – blocked - caused a CONPOT 100% CPU issue |
-| Detections            | mostly `index`/`unknown`; 204 XSS, 1 RFI |
+| Top source IP         | 40.78.x.x (10 006 requests = 85 % of all, in 30 min on 19 Oct, 08:08 to 08:38 UTC, peak 2 068 requests/min, 5 819 distinct paths) – blocked, one of the sources of the Conpot 100 % CPU incidents |
+| Methods               | GET 11 372, POST 391, HEAD 25, OPTIONS 13, TRACE 6, PROPFIND 5 |
+| POST requests with a body | 199 (160 from 40.78.x.x) |
+| Detections            | `index` 11 190, `unknown` 358, `xss` 204, `wp-content` 61, `crlf` 3, `rfi` 1 |
+| Period covered        | 18 Oct 12:54 to 21 Oct 12:53 UTC (complete) |
 
 <img width="635" height="650" alt="ksnip_20261019-111116" src="https://github.com/user-attachments/assets/f2761599-b11f-4668-b3c8-1c65ebb6d7db" />
 <img width="887" height="632" alt="ksnip_20261019-121448" src="https://github.com/user-attachments/assets/1504aaff-0d3b-4cec-81ce-322c568af758" />
@@ -353,10 +380,10 @@ Image x - Validation of evidence attack on Defender from source Suricata
 
 ## 7. Analytics Rules
 
-All rules exclude the my management IP. Alerts are counted from the exported `SecurityAlert` table. "Distinct IPs" counts the IP entity of each alert.
+All rules except rule 17 (rewritten, see 8.3) exclude the author's management IP. Alerts are counted from the exported `SecurityAlert` table. "Distinct IPs" counts the IP entity of each alert.
 
 
- # | Rule | Sev | Tactic(s) | Technique(s) Enterprise | ICS | Alerts | Distinct IPs | Status |
+| # | Rule | Sev | Tactic(s) | Technique(s) Enterprise | ICS | Alerts | Distinct IPs | Status |
 |---|---|---|---|---|---|---|---|---|
 | 1 | HP - Cowrie successful login | Low | Initial Access | T1078 | n/a | 2,324 | 148 | Fired, noisy (2.9 alerts per real login) |
 | 2 | Persistence Attempts | **High** | Persistence, Execution | T1098.004, T1053.003, T1136.001, T1037.004 | n/a | 572 | 42 | Fired, verified |
@@ -374,7 +401,7 @@ All rules exclude the my management IP. Alerts are counted from the exported `Se
 | 14 | Web flood / fast scanner | Med | Impact | T1499.002 | n/a | 477 | 4 | Fired, noisy |
 | 15 | Exploit-style paths | Med | Initial Access | T1190 | n/a | 150 | 17 | Fired |
 | 16 | Classified web attacks | Med | Initial Access | T1190 | n/a | **0** | n/a | Under evaluation (no alert) |
-| 17 | Payloads in POST bodies (v2) | **High** | Initial Access, Execution | T1190, T1059, T1105, T1552.001 | n/a | 156 | 1 | Fired but need evatuation  |
+| 17 | Payloads in POST bodies (v2) | **High** | Initial Access, Execution | T1190, T1059, T1105, T1552.001 | n/a | 156 | 1 | v1 fired; rewritten as v2, needs re-evaluation |
 | 18 | Same IP on web and SNMP | Med | Reconnaissance | T1595.002 | T0846 | 20 | 1 | Fired |
 | 19 | Same IP on SSH and Dionaea | Low | Reconnaissance | T1595 | n/a | 205 | 13 | Fired  |
 | 20 | Multi-service scanner | Med | Reconnaissance | T1595.001, T1046 | n/a | **0** | n/a | Under evaluation  |
@@ -401,6 +428,8 @@ Several rules run every 5 to 15 minutes with a lookback of 1 h or more and one a
 | HP - Cowrie successful login | 2,324 | 797 `login.success` events | 2.9 |
 | Web flood / fast scanner | 477 | one burst: 10,006 requests in 30 min | n/a |
 | Malware captured | 18 | 4 distinct MD5 | 4.5 (the same hash re-alerted hourly) |
+
+The deployed rules also differ from the exported ARM template: the alerts report an 8 h lookback for Payloads in POST bodies (template: 1 h) and 6 h for Malware captured (template: 1 h). All 5,428 alerts were created with one alert per event and none was promoted to an incident.
 
 Two further defects: Credential reuse has no entity mapping, and in Malware captured the IP entity is mapped to an array, so 13 of 18 alerts carry no IP. Improvements: set lookback equal to frequency, use event grouping by entity instead of one alert per result, aggregate with `summarize` per entity, fix the two mappings, add the missing techniques, and calibrate the two silent rules on a longer window.
 
@@ -443,7 +472,7 @@ This is classic botnet behaviour that installs a shared back-door key and checks
 
 ### 8.2 Malware captured (Dionaea)
 
-- Four binary archive was retrieved by Dionaea.  
+- Four distinct files were captured by Dionaea (MD5 values in Appendix 13); one was identified as a trojan.  
 
 Only the cryptographic hashes are retained; the binaries themselves are kept offline and are **not** analysed further in this report.
 
@@ -456,11 +485,13 @@ Virus total evidence:
 <img width="1172" height="484" alt="image" src="https://github.com/user-attachments/assets/a9b2d71e-8620-4bb0-9087-6bf4c3f69b16" />
 
 
-### 8.3 Payloads in POST bodies (T1059)
+### 8.3 Payloads in POST bodies (T1190 / T1059)
 
-**Rule query:** looks for `base64`, `eval`, `system`, `wget`, `curl`, `exec`, `passthru` inside Tanner POST bodies.
+**Rule logic (v1):** keywords `base64`, `eval`, `system`, `wget`, `curl`, `exec`, `passthru` in Tanner POST bodies. It matched 52 of the 199 POST bodies and produced 156 alerts (one source IP).
 
-'''
+**Rule logic (v2, rewritten after the evaluation):** POST/PUT requests with a non-empty body that match an extended keyword list or whose path carries `auto_prepend_file`/`allow_url_include`. Each match is labelled with a payload family and summarised per source IP and family. The query has no time filter (frequency and lookback are set in the rule wizard) and no longer excludes the management IP.
+
+```kusto
 Tanner_CL
 | where method in~ ("POST", "PUT")
 | extend body = tostring(post_data)
@@ -479,13 +510,24 @@ Tanner_CL
 | summarize Requests = count(), FirstSeen = min(TimeGenerated), LastSeen = max(TimeGenerated),
             Paths = make_set(path, 5), UserAgents = make_set(user_agent, 3), Sample = take_any(substring(body, 0, 300))
           by src_ip, Family
-'''
+```
 
 <img width="796" height="359" alt="image" src="https://github.com/user-attachments/assets/4b0005a0-dc3d-41ac-8601-a660d82cbc7f" />
 
-**Evidence (Tanner raw logs, 18 to 21 Oct):** 391 POST requests, 199 of them with a body. 52 bodies match the rule keywords: 39 from `40.78.x.x`, 5 from `168.222.x.x`, 5 from `190.171.x.x`, 2 from `152.236.x.x`, 1 from `96.62.x.x`. The 156 Sentinel alerts come from 39 events of the first source, re-alerted by the overlapping lookback (7.1).
+**Evidence (Tanner raw logs, 18 to 21 Oct):** 391 POST requests, 199 of them with a body. 52 bodies match the rule keywords: 39 from `40.78.x.x`, 5 from `168.222.x.x`, 5 from `190.171.x.x`, 2 from `152.236.x.x`, 1 from `96.62.x.x`. The 156 Sentinel alerts come from 39 events of the first source: the rule ran 4 consecutive times (5-minute frequency, 8 h deployed lookback) and returned the same 39 events each time (4 x 39 = 156), see 7.1. A Python replica of the v2 regex on the raw Tanner logs matches 107 of the 199 bodies; this still has to be confirmed by running the v2 query in Sentinel.
 
-> This rule needs to be reavaluated.
+| Payload family (count) | Source | What it is | MITRE |
+|---|---|---|---|
+| PrimeFaces EL-injection probes with `cmd=cat /etc/passwd`, `wget $QIP:$QPORT`, `mstsc /v:$QIP:$QPORT` (at least 24) | `40.78.x.x` | Mass-scanner template, the `$QIP:$QPORT` placeholders were never filled in | T1190, T1059 |
+| WebLogic console probes with `com.tangosol.coherence…` handle (14) | `40.78.x.x` | Looks like the WebLogic console ShellSession pattern (CVE-2020-14882 family, to verify) | T1190 |
+| PHP-CGI argument injection (`-d allow_url_include=1 -d auto_prepend_file=php://input`, soft-hyphen `%AD`) | `40.78.x.x`, `168.222.x.x`, `190.171.x.x` | Pattern of CVE-2024-4577 (to verify) | T1190, T1059 |
+| `shell_exec(base64_decode(…))` dropper (10) | `168.222.x.x`, `190.171.x.x` | Decodes to a shell script that writes a private key to `key.ppk`, then `scp`s a script from a remote host and runs it with argument `cve_2024_4577` | T1105, T1059.004 |
+| React Server Components `$1:__proto__:then` (8) | `40.78.x.x`, `152.236.x.x` | Prototype-pollution RCE attempt (CVE-2025-55182 pattern, to verify) | T1190 |
+| `0x[]=androxgh0st` (25) | `78.153.x.x` | Known Laravel/PHP credential-stealing botnet signature. **Not matched by v1**, because it has no keyword | T1190, T1552.001 |
+
+The login-form POSTs in the logs (`{"login": ""}` 14 times, `ADMIN/ADMIN`, `admin/pass`) are credential guessing (T1110.001), not payloads, and are better handled by a separate rule.
+
+> The v2 rule still needs validation on a longer dataset.
 
 ---
 
@@ -509,7 +551,7 @@ Brainstorm based on the observed telemetry:
    - Low volume but high interest for industrial threat intelligence.
 
 4. **Malware distribution**  
-   - At least four successful delivery via Dionaea.
+   - Four distinct malware files captured by Dionaea, one identified as a trojan.
 
 5. **Possible research / academic scanners**  
    - Some low-and-slow, multi-protocol sources that did not attempt brute-force.
@@ -527,8 +569,12 @@ The dominant motivation remains **automated compromise at scale** rather than ta
 |------------------------------------------------|-------------------------------------------------------|
 | Conpot container driven to 100 % CPU           | NSG deny rule + iptables rate-limit (100 req/30 s) + script to evaluate container heath + cron job that restarts the container if CPU > 75 % |
 | Extremely noisy “successful login” alerts      | Rule kept for visibility; grouping and suppression to be improved |
-| Some analytic rules produced zero alerts       | Explicitly marked “Under evaluation” – expected on a short 48 h window |
-| JSON parse errors on a subset of Tanner lines  | Defensive parsing (Python / jq with error ignoring)   |
+| Some analytic rules produced zero alerts       | Explicitly marked “Under evaluation” (Classified web attacks, Multi-service scanner) – expected on a short ~72 h window |
+| JSON parse errors on a subset of Tanner lines  | Parsing line by line: all 11,817 Tanner lines parse (the jq errors probably came from reading rotated `.gz` files without `zcat`) |
+| Repeated alerts (same event alerted in every overlapping run) | Documented in 7.1; fix by setting lookback equal to frequency, grouping by entity and summarising per entity |
+| Deployed rules differ from the exported ARM template | Re-export the rules from the portal before documenting them |
+| Conpot raw extract covers only 12 h | Elasticsearch counts (≈ 1 733) and Sentinel alerts (857) used to cross-check; re-pull with rotated logs |
+| Dionaea `binaries.tgz` is empty | Samples are in `binaries.tgz.1` and `.2`; MD5 values taken from the Sentinel alerts |
 | Suricata eve.json changing while being archived| Accepted; SHA-256 still recorded for chain of custody |
 | Desire to keep malware evidence without risk   | Only hashes retained; binaries stay offline           |
 
@@ -563,10 +609,14 @@ The ~72-hour experiment successfully demonstrated:
 **Recommendations for a follow-up engagement**
 
 1. Extend the observation window to 7–14 days to give low-volume rules a chance to fire.  
-2. Improve alert grouping / suppression for the “successful login” rule.  
+2. Improve alert grouping / suppression for the “successful login” rule and for every rule with a lookback longer than its frequency (see 7.1).
+   - Fix the two entity mappings (Credential reuse, Malware captured), add MITRE techniques to the rules that have none, and calibrate the two silent rules.
+   - Put limits on the Conpot container (CPU limit, health check, Azure Monitor CPU alert).  
 3. Add more ICS protocols and richer Conpot templates.  
 4. Automate the evidence packaging (SHA-256 manifest + selective log extracts).  
 5. Overlay the observed techniques on the MITRE ATT&CK Navigator (including the ICS matrix).  
+
+The 22 rules were an evaluation run of ~72 hours: some alerts are noise, repeats or the product of misconfigured rules, and that is part of the findings rather than a defect of the data.
 
 The project already provides a solid, recruiter-friendly artefact that shows hands-on experience with honeypots, Azure Sentinel, detection engineering and privacy-aware research.
 
@@ -574,6 +624,28 @@ The project already provides a solid, recruiter-friendly artefact that shows han
 
 ## 13. Appendix – Evidence Index & Chain of Custody
 
+### 13.1 Malware hashes (from the Malware captured alerts)
+
+| MD5 | Alerts | First seen (UTC) | Last seen (UTC) |
+|---|---|---|---|
+| `70ccd9220cebb56eaa38b9f1bd1a1cd8` | 6 | 2026-10-19 22:08 | 2026-10-20 03:09 |
+| `33d373e264dc7fdb0bcdbd8e075a6319` | 3 | 2026-10-19 21:08 | 2026-10-19 23:09 |
+| `bedea9a1132892eb9041c601f2a49d03` | 2 | 2026-10-20 10:25 | 2026-10-20 10:55 |
+| `ae12bb54af31227017feffd9598a6f5e` | 1 | 2026-10-20 09:08 | 2026-10-20 09:08 |
+
+
+### 13.2 Extracts (SHA-256)
+ 
+ Will not be published, GDRP reasons.
+| File | SHA-256 |
+|---|---|
+| `cowrie_login_success.tsv` (797 rows) | `c81e0769804af0f90f26682cc6ee1719e526de31cf422f0c75c5d57ed113ed9e` |
+| `cowrie_commands.tsv` (3 724 rows) | `c132ea03d44394c4fcf2bec003da070643a341f49b5629b126ad3de7bd4fd0bd` |
+| `cowrie_downloads.tsv` (117 rows) | `f7174b26b000a3080b7b54d2270b3abe2616d54519929c6fc7e5379975f8372b` |
+| `cowrie_uploads.tsv` (10 rows) | `2647dc001d968f0c32fb96a99244f429aab52d69435b4519202a6a3610cb8b22` |
+| `conpot_events.tsv` (190 rows) | `03e30ddc827df9816c0e9a41e52b8b8ee0253dcde66b37a865121e82b0d9bc25` |
+| `suricata_alerts.tsv` (4 752 rows) | `f4ab3a7c369517938610cdea57c0fdd121b61bdd0aa9eb21331fca92a6695926` |
+| `dionaea_creds.jsonl` (8 632 rows) | `345336f8f6f5db2e34209637c7079981a37b2d974fc11cb26dbbda6cd38e56b2` |
 
 
 ---
