@@ -52,7 +52,7 @@ Operating over an exposure window of approximately 72 hours, the honeypot captur
 
 Logs were forwarded in near real-time to a Microsoft Sentinel workspace via Azure Monitor Agent and a custom Data Collection Rule (`dcr-honeypot`).  
 
-In a ~48-hour observation window the honeypot recorded:
+In a ~72-hour observation window the honeypot recorded:
 
 | Source     | Total events (approx.) | Key metric                          | Unique source IPs |
 |------------|------------------------|-------------------------------------|-------------------|
@@ -177,7 +177,7 @@ attacks.
 • Dionaea – Collects malware by mimicking vulnerable services like SMB, HTTP, and FTP.
 • Suricata – A network intrusion detection and prevention system that analyzes and logs
 malicious traffic.
-• Tanner – Analyzes Cowrie and Heralding logs for behavioral enrichment.
+• Tanner – Web application honeypot that emulates vulnerable web apps and classifies HTTP requests (index, XSS, RFI, CRLF, WordPress probes).
 • Nginx -  Management and Kibana dashboards 
 
 • A custom Network Security Group (NSG) was configured to expose only the
@@ -208,16 +208,15 @@ The DCR declares five custom streams:
 
 All streams set `TimeGenerated` from the original timestamp and drop noisy internal fields.
 
-### 5.2 Analytic Rules Overview
+## 5.2 Analytic Rules Overview (replace)
 
-Twenty scheduled rules were deployed (exported as ARM template).  
-Severity distribution:
+Twenty-two scheduled rules were deployed (exported as an ARM template) and left running for the ~72 h observation window (18 to 21 October) as an evaluation. Severity distribution:
 
-- **High** – 3 rules  
-- **Medium** – 12 rules  
-- **Low** – 5 rules  
+- **High**: 3 rules
+- **Medium**: 14 rules
+- **Low**: 5 rules
 
-Full list with MITRE mapping is given in Section 7.
+Twenty rules produced alerts (5,428 in total, none promoted to an incident). Two produced none. Full list with MITRE mapping is in Section 7.
 
 ---
 
@@ -270,16 +269,27 @@ Curled/wget IOC's
 Top scanner: `35.195.x.x` (61 events).  
 (Elasticsearch total Conpot documents ≈ 1 733.)
 
-> Some scanners driven to 100 % CPU by flooding the port 161 dropping suddently the connection.
-> Mitigation: NSG deny rule of Source Malicious IP's + iptables rate-limit (100 req/30 s) + cron job that restarts the container if CPU > 75 %
+## 6.2.1 Conpot 100 % CPU incident 
 
-image x - attack to honeypot that caused 100 cpu usage to conpot container insident.
+**Impact.** Four sources, each in turn, drove the Conpot container to 100 % CPU. The first had the largest impact. While the container was pegged, Conpot stopped answering, so the sensor was blind to OT traffic until it was restarted.
+
+**Trigger.** A flood of malformed HTTP GET requests (port 80, Conpot HTTP template) combined with SNMP traffic on port 161 (UDP), with the connections dropped mid-request. The container entered a loop and kept a core at 100 % without needing further traffic.
+
+**Sources.** `77.110.x.x`, `40.78.x.x`, `189.150.x.x`, `66.132.x.x` (all later in the `block-attack1` rule). The raw logs confirm that `40.78.x.x` sent 10,006 requests to Tanner in 30 minutes on 19 Oct (08:08 to 08:38 UTC, peak 2,068 requests per minute, 5,819 distinct paths). `189.150.x.x` made 1,144 Cowrie sessions. `66.132.x.x` belongs to the Censys scanner range. `40.78.x.x` is in Microsoft's address space, so state it as "an Azure-hosted scanner" until an ASN lookup confirms it.
+
+image x - attack to honeypot that caused 100 cpu usage to conpot container incident.
 <img width="653" height="442" alt="ksnip_20261019-101129(3)" src="https://github.com/user-attachments/assets/07a5b5c4-7962-4635-a532-e2bf687e26da" />
 <img width="1200" height="912" alt="image" src="https://github.com/user-attachments/assets/e072de24-7eb6-4aca-98dc-484577e2efe2" />
 The attacker flooded the machine with misconfigured GEt requestes and dropped connections, causing a Loop bug in the container that lead to 100% CPU usage.
 <img width="1038" height="692" alt="ksnip_20261019-101129(4)" src="https://github.com/user-attachments/assets/db48d835-265e-44b3-ac99-e26caf8ce90c" />
 <img width="987" height="705" alt="ksnip_20261019-190705" src="https://github.com/user-attachments/assets/acdf667a-93f0-4f8f-83d2-b47f55f53786" />
 
+**Why the block list alone failed.** Each new scanner re-triggered the bug. Blocking by source is reactive and always one incident behind.
+
+**Layered fix.**
+1. NSG deny rule for the offending sources (reactive).
+2. iptables rate limit, dropping after 100 requests in 30 s.
+3. A watchdog (cron plus script) that restarts the container when CPU exceeds 75 %.
 
 
 
@@ -343,29 +353,33 @@ Image x - Validation of evidence attack on Defender from source Suricata
 
 ## 7. Analytics Rules
 
-All rules exclude the author’s management IP.  
-Rules that produced **zero alerts** during the observation window are marked **Under evaluation** (work in progress / may need calibration).
+All rules exclude the my management IP. Alerts are counted from the exported `SecurityAlert` table. "Distinct IPs" counts the IP entity of each alert.
 
-| # | Rule name                              | Severity | MITRE tactic(s)              | Technique(s)          | Status          |
-|---|----------------------------------------|----------|------------------------------|-----------------------|-----------------|
-| 1 | HP - Cowrie successful login           | Low      | Initial Access               | T1078                 | Fired (noisy)   |
-| 2 | Persistence Attempts                   | **High** | Persistence, Execution       | T1098.004, T1053      | **Fired – verified** |
-| 3 | Dropper activity                      | Medium   | Command and Control          | T1105                 | Fired           |
-| 4 | Credential reuse (T1110.004)           | Medium   | Credential Access            | T1110                 | Fired           |
-| 5 | Malware captured                       | **High** | Command and Control          | –                     | **Fired – verified** |
-| 6 | Credential guessing on services        | Medium   | Credential Access            | –                     | Fired           |
-| 7 | OT/ICS protocol interaction            | Medium   | Reconnaissance               | T1595 (+ ICS)         | Fired           |
-| 8 | Multi-port OT scanner                  | Medium   | Reconnaissance               | T1595                 | Fired           |
-| 9 | Persistent OT visitor                  | Low      | Reconnaissance               | T1595                 | Under evaluation|
-|10 | Same IP on SSH and OT honeypots        | Medium   | Reconnaissance               | T1595                 | Fired           |
-|11 | SNMP enumeration                       | Low      | Collection                   | T1602.001             | Fired           |
-|12 | SNMP flood                             | Medium   | Impact                       | T1499                 | Under evaluation|
-|13 | SNMP SET attempts                      | Medium   | Collection, Impact           | –                     | Under evaluation|
-|14 | web flood / fast scanner               | Medium   | Impact                       | T1499                 | Fired           |
-|15 | Exploit-style paths                    | Medium   | Initial Access               | T1190                 | Fired           |
-|16 | Classified web attacks                 | Medium   | Initial Access               | T1190                 | Fired           |
-|17 | Payloads in POST bodies                | **High** | Execution                    | T1059                 | Under evaluation / limited |
-|18 | Same IP on web and SNMP                | Medium   | Reconnaissance               | –                     | Under evaluation|
+
+ # | Rule | Sev | Tactic(s) | Technique(s) Enterprise | ICS | Alerts | Distinct IPs | Status |
+|---|---|---|---|---|---|---|---|---|
+| 1 | HP - Cowrie successful login | Low | Initial Access | T1078 | n/a | 2,324 | 148 | Fired, noisy (2.9 alerts per real login) |
+| 2 | Persistence Attempts | **High** | Persistence, Execution | T1098.004, T1053.003, T1136.001, T1037.004 | n/a | 572 | 42 | Fired, verified |
+| 3 | Dropper activity | Med | Command and Control | T1105, T1059.004 | n/a | 20 | 4 | Fired |
+| 4 | Credential reuse | Med | Credential Access | T1110.004 | n/a | 209 | none (entity mapping missing) | Fired, needs fix |
+| 5 | Malware captured | **High** | Command and Control | T1105 | n/a | 18 | 4 (13 alerts have no IP entity) | Fired, verified |
+| 6 | Credential guessing on services | Med | Credential Access | T1110.001, T1110.003 | n/a | 35 | 6 | Fired |
+| 7 | OT/ICS protocol interaction | Med | Reconnaissance | T1595 | T0883, T0846 | 857 | 156 | Fired |
+| 8 | Multi-port OT scanner | Med | Reconnaissance | T1595 | T0846, T0840 | 84 | 5 | Fired |
+| 9 | Persistent OT visitor | Low | Reconnaissance | T1595 | T0883 | 7 | 5 | Fired |
+| 10 | Same IP on SSH and OT honeypots | Med | Reconnaissance | T1595 | T0883 | 211 | 12 | Fired |
+| 11 | SNMP enumeration | Low | Collection | T1602.001 | T0888 | 2 | 2 | Fired |
+| 12 | SNMP flood | Med | Impact | T1498.001 | T0814 | 6 | 1 | Fired |
+| 13 | SNMP SET attempts | Med | Collection, Impact | T1565.001 (to confirm) | T0836 | 2 | 1 | Fired |
+| 14 | Web flood / fast scanner | Med | Impact | T1499.002 | n/a | 477 | 4 | Fired, noisy |
+| 15 | Exploit-style paths | Med | Initial Access | T1190 | n/a | 150 | 17 | Fired |
+| 16 | Classified web attacks | Med | Initial Access | T1190 | n/a | **0** | n/a | Under evaluation (no alert) |
+| 17 | Payloads in POST bodies (v2) | **High** | Initial Access, Execution | T1190, T1059, T1105, T1552.001 | n/a | 156 | 1 | Fired but need evatuation  |
+| 18 | Same IP on web and SNMP | Med | Reconnaissance | T1595.002 | T0846 | 20 | 1 | Fired |
+| 19 | Same IP on SSH and Dionaea | Low | Reconnaissance | T1595 | n/a | 205 | 13 | Fired  |
+| 20 | Multi-service scanner | Med | Reconnaissance | T1595.001, T1046 | n/a | **0** | n/a | Under evaluation  |
+| 21 | SMB/RPC scanning | Low | Lateral Movement (as configured) | T1210, closer to T1595 for inbound scans | n/a | 19 | 17 | Fired  |
+| 22 | Database probing | Med | Initial Access | T1190, T1110.001 | n/a | 54 | 20 | Fired |
 
 <img width="1145" height="931" alt="all rules" src="https://github.com/user-attachments/assets/e539453b-ccba-4626-9181-3fec653f807c" />
 
@@ -375,6 +389,20 @@ image x - Analytics Rule Sample Creation
 <img width="842" height="800" alt="ksnip_20261018-172145" src="https://github.com/user-attachments/assets/028cf903-d9eb-4e95-88d6-810764190028" />
 <img width="883" height="815" alt="ksnip_20261018-172145(2)" src="https://github.com/user-attachments/assets/767fa298-10e0-4514-bb3d-572dbe334ed4" />
 <img width="898" height="758" alt="ksnip_20261018-172145(3)" src="https://github.com/user-attachments/assets/fa9ce220-cca1-4276-ae7d-e5922957091a" />
+
+### 7.1 Repeated alerts (known limitation, listed as an improvement)
+
+Several rules run every 5 to 15 minutes with a lookback of 1 h or more and one alert per result. The same event is therefore alerted again in every run that still sees it.
+
+| Rule | Alerts | Underlying raw events | Ratio |
+|---|---|---|---|
+| Payloads in POST bodies (v1) | 156 | 39 matching POSTs from one IP (Tanner): 4 runs x 39 | 4.0 |
+| Persistence Attempts | 572 | 78 `authorized_keys` commands (Cowrie) | 7.3 |
+| HP - Cowrie successful login | 2,324 | 797 `login.success` events | 2.9 |
+| Web flood / fast scanner | 477 | one burst: 10,006 requests in 30 min | n/a |
+| Malware captured | 18 | 4 distinct MD5 | 4.5 (the same hash re-alerted hourly) |
+
+Two further defects: Credential reuse has no entity mapping, and in Malware captured the IP entity is mapped to an array, so 13 of 18 alerts carry no IP. Improvements: set lookback equal to frequency, use event grouping by entity instead of one alert per result, aggregate with `summarize` per entity, fix the two mappings, add the missing techniques, and calibrate the two silent rules on a longer window.
 
 ---
 
@@ -432,7 +460,32 @@ Virus total evidence:
 
 **Rule query:** looks for `base64`, `eval`, `system`, `wget`, `curl`, `exec`, `passthru` inside Tanner POST bodies.
 
-During the observation window the volume of interesting POST bodies was low. The rule is retained and marked for further calibration on a longer dataset.
+'''
+Tanner_CL
+| where method in~ ("POST", "PUT")
+| extend body = tostring(post_data)
+| where isnotempty(body) and body != "{}"
+| where body matches regex @"(?i)androxgh0st|__proto__|auto_prepend_file|allow_url_include|php://input|tangosol|primefaces|pfdrt|shell_exec|base64_decode|eval\(|system\(|passthru|exec\(|wget|curl|tftp|/bin/(ba)?sh|bash -c|cmd=|child_process|jndi:|<\?php|\.\./\.\./|/etc/passwd"
+    or path has_any ("auto_prepend_file", "allow_url_include")
+| extend Family = case(
+    body has "androxgh0st", "androxgh0st",
+    body has "__proto__", "react-proto-pollution",
+    body has "tangosol", "weblogic-coherence",
+    body has_any ("pfdrt", "primefaces"), "primefaces-el",
+    body has_any ("shell_exec", "base64_decode"), "php-dropper",
+    path has_any ("auto_prepend_file", "allow_url_include"), "php-cgi-arg-injection",
+    body has_any ("wget", "curl", "tftp"), "download-cradle",
+    "other-command")
+| summarize Requests = count(), FirstSeen = min(TimeGenerated), LastSeen = max(TimeGenerated),
+            Paths = make_set(path, 5), UserAgents = make_set(user_agent, 3), Sample = take_any(substring(body, 0, 300))
+          by src_ip, Family
+'''
+
+<img width="796" height="359" alt="image" src="https://github.com/user-attachments/assets/4b0005a0-dc3d-41ac-8601-a660d82cbc7f" />
+
+**Evidence (Tanner raw logs, 18 to 21 Oct):** 391 POST requests, 199 of them with a body. 52 bodies match the rule keywords: 39 from `40.78.x.x`, 5 from `168.222.x.x`, 5 from `190.171.x.x`, 2 from `152.236.x.x`, 1 from `96.62.x.x`. The 156 Sentinel alerts come from 39 events of the first source, re-alerted by the overlapping lookback (7.1).
+
+> This rule needs to be reavaluated.
 
 ---
 
