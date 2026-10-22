@@ -57,13 +57,16 @@ In a ~72-hour observation window the honeypot recorded:
 | Cowrie     | ≈ 84 500               | 797 successful logins               | 150 (successful logins) |
 | Dionaea    | ≈ 11 250               | 8 632 credential attempts           | 49                |
 | Tanner     | ≈ 11 830               | 11 817 HTTP requests                | 204               |
-| Conpot     | ≈ 1 730                | 190 OT/ICS events (local extract, 12 h only, see 6.2) | 29 (local extract) |
-| Suricata   | ≈ 725 000 (all) / 4 752 alerts after filtering | 4 752 external-relevant alerts | 405               |
+| Conpot     | **1 827** (full raw, all days) | SNMP / Kamstrup / IEC104 / guardian_ast dominant | **203** (202 excl. author) |
+| Suricata   | ≈ 725 000 total / **33 232** alerts (full raw) | DoublePulsar, SSH scans, SNMP, web scans | **1 497** (1 493 excl. internal Azure + author) |
 
 > **Note on Cowrie**  
 > The ELK / Elasticsearch dashboard shows ≈ 84 500 Cowrie documents. These are *all* event types (session.connect, client.version, login.failed, login.success, command.input, session.closed, …).  
 > Only **797** of them are `cowrie.login.success`, coming from **150 unique source IPs**.  
 > The number of unique IPs that merely *connected* (without necessarily succeeding) is higher; the current evidence package contains only the top-20 by connection volume.
+
+> **Note on Conpot / Suricata**  
+> Earlier drafts used only the current (non-rotated) log files. The values above come from a full re-parse of every rotated `.json` / `.json.*.gz` covering 18–21 October 2026.
 
 Custom analytic rules mapped to MITRE ATT&CK (including ATT&CK for ICS) generated alerts. Three **High** severity rules produced actionable findings that were cross-verified against the raw logs:
 
@@ -130,7 +133,7 @@ A temporary deny rule (`block-attack1`) was added for four aggressive source IPs
 ### 3.3 Data-flow architecture
 
 ```
-Internet attackers
+     Internet 
         │
         ▼
 ┌───────────────────────┐
@@ -255,39 +258,49 @@ Curled/wget IOC's
 
 ### 6.2 Conpot (OT/ICS)
 
-> **Data coverage.** The local raw extract holds only **12 hours** of Conpot data (21 Oct 00:31 to 12:42 UTC, 190 events). Elasticsearch holds ≈ 1 733 Conpot documents and Sentinel raised 857 OT/ICS alerts over the full ~72 h, so the table below is a sample, not the total.
+> **Data coverage (corrected).** Full re-parse of every rotated Conpot log (`conpot_*.json*`) covering **18–21 October 2026** yields **1 827 events** from **203 unique source IPs** (202 excluding the author management IP).  
+> Daily volume: 18 Oct 590 · 19 Oct 771 · 20 Oct 275 · 21 Oct 191.
 
-| Protocol (`data_type`) | Port | Events (local extract) | Source IPs | Of which protocol requests | MITRE ATT&CK for ICS | Sentinel rules that cover it |
-|---|---|---|---|---|---|---|
-| IEC 60870-5-104 (`IEC104`) | 2404/tcp | 75 | 5 | 0 (connection open/close only) | T0883, T0846 | OT/ICS protocol interaction, Multi-port OT scanner |
-| Guardian AST (`guardian_ast`) | 10001/tcp | 70 | 12 | 5 (`AST I20100` x3, `AST i90200` x2) | T0883, T0846 | OT/ICS protocol interaction |
-| SNMP (`snmp`) | 161/udp | 21 | 8 | 21 (`SNMPv1 Get` 7, `SNMPv2 Get` 7, `SNMPv2 Bulk` 7) | T0888 (T1602.001 Enterprise) | SNMP enumeration, SNMP flood, SNMP SET attempts |
-| Kamstrup protocol (`kamstrup_protocol`) | 1025/tcp | 16 | 2 | 0 | T0883, T0846 | OT/ICS protocol interaction |
-| Kamstrup management (`kamstrup_management_protocol`) | 50100/tcp | 6 | 1 | 0 | T0883, T0846 | OT/ICS protocol interaction |
-| IPMI (`ipmi`) | 623/udp | 2 | 1 | 1 (`GET_CHANNEL_AUTH_CAPABILITIES`) | T0888 | OT/ICS protocol interaction |
-| **Total (local extract)** | | **190** | **29** | **27** | | |
+| Protocol (`data_type`) | Typical port | Events (full) | MITRE ATT&CK for ICS | Sentinel rules that cover it |
+|---|---|---|---|---|
+| SNMP (`snmp`) | 161/udp | **629** | T0888 (T1602.001 Enterprise) | SNMP enumeration, SNMP flood, SNMP SET attempts |
+| Kamstrup protocol (`kamstrup_protocol`) | 1025/tcp | **397** | T0883, T0846 | OT/ICS protocol interaction, Multi-port OT scanner |
+| Guardian AST (`guardian_ast`) | 10001/tcp | **323** | T0883, T0846 | OT/ICS protocol interaction |
+| IEC 60870-5-104 (`IEC104`) | 2404/tcp | **241** | T0883, T0846 | OT/ICS protocol interaction, Multi-port OT scanner |
+| Kamstrup management (`kamstrup_management_protocol`) | 50100/tcp | **211** | T0883, T0846 | OT/ICS protocol interaction |
+| IPMI (`ipmi`) | 623/udp | **22** | T0888 | OT/ICS protocol interaction |
+| EtherNet/IP (`enip`) | 44818/tcp | **4** | T0883, T0846 | OT/ICS protocol interaction |
+| **Total (full raw)** | | **1 827** | | |
 
-Of the 190 events, 163 are connection lifecycle events (85 `NEW_CONNECTION`, 78 `CONNECTION_LOST`) and only 27 carry a protocol request. All the SNMP events are read requests (`Get`, `Bulk`); no SNMP `Set` is present in this extract, although the SNMP SET rule alerted twice in the full dataset.
-
-| Top sources (masked) | Events |
-|---|---|
-| `35.195.x.x` | 61 |
-| `205.210.x.x` | 19 |
-| `47.84.x.x` | 17 |
-| `3.129.x.x` | 15 |
-| `52.160.x.x` | 10 |
+| Top sources (masked) | Events | Notes |
+|---|---|---|
+| `40.78.x.x` | 402 | Also top Tanner / Suricata source; one of the Conpot CPU attackers; later blocked |
+| `x.x.x.x` | 282 | Author management IP (anonymised) |
+| `178.166.x.x` | 245 | Heavy Kamstrup activity |
+| `35.195.x.x` | 61 | Cloud scanner |
+| `165.154.x.x` | 26 | |
+| `3.129.x.x` / `18.218.x.x` | 24 each | AWS-range scanners |
 
 Cross-check with Sentinel (alerts over the full ~72 h): OT/ICS protocol interaction 857 alerts / 156 IPs, Same IP on SSH and OT honeypots 211 / 12, Multi-port OT scanner 84 / 5, Persistent OT visitor 7 / 5, SNMP flood 6 / 1, SNMP enumeration 2 / 2, SNMP SET attempts 2 / 1, Same IP on web and SNMP 20 / 1.
 
-The port 80 (HTTP) and port 161 traffic that triggered the CPU incident (6.2.1) is not in this extract, because it falls outside the 12-hour window and Conpot HTTP produced no `data_type` rows in it.
+The dominant protocol is **SNMP** (read requests), followed by the two Kamstrup variants and Guardian AST. The full extract confirms that the earlier 12-hour sample severely under-represented SNMP and Kamstrup volume.
 
 ### 6.2.1 Conpot 100 % CPU incident
 
-**Impact.** Four sources, each in turn, drove the Conpot container to 100 % CPU. The first had the largest impact. While the container was pegged, Conpot stopped answering, so the sensor was blind to OT traffic until it was restarted.
+**Impact.** Four sources, each in turn, drove the Conpot container to 100 % CPU. While the container was pegged, Conpot stopped answering, so the sensor was blind to OT traffic until it was restarted.
 
-**Trigger.** A flood of malformed HTTP GET requests (port 80, Conpot HTTP template) combined with SNMP traffic on port 161 (UDP), with the connections dropped mid-request. The container entered a loop and kept a core at 100 % without needing further traffic.
+**Trigger.** A flood of malformed HTTP GET requests (port 80, Conpot HTTP template) combined with SNMP traffic on port 161 (UDP), with connections dropped mid-request. The container entered a loop and kept a core at 100 % without needing further traffic.
 
-**Sources.** `77.110.x.x`, `40.78.x.x`, `189.150.x.x`, `66.132.x.x` (all later in the `block-attack1` rule). The raw logs confirm that `40.78.x.x` sent 10,006 requests to Tanner in 30 minutes on 19 Oct (08:08 to 08:38 UTC, peak 2,068 requests per minute, 5,819 distinct paths). `189.150.x.x` made 1,144 Cowrie sessions. `66.132.x.x` belongs to the Censys scanner range. `40.78.x.x` is in Microsoft Azure address space (an Azure-hosted scanner; the ASN should be confirmed with a whois lookup).
+**Sources (all later added to the NSG `block-attack1` deny rule):**
+
+| Source (masked) | Evidence across sensors (full extracts) | Role |
+|---|---|---|
+| `40.78.x.x` | Tanner: **10 006** requests in 30 min (19 Oct 08:08–08:38 UTC, peak 2 068 req/min, 5 819 distinct paths); Conpot: **402** events; Suricata: **4 008** alerts | Primary CPU attacker; also top web / OT / IDS source |
+| `189.150.x.x` | Cowrie: **1 144** session.connect | High-volume SSH scanner |
+| `66.132.x.x` | Censys scanner range; present in Conpot and Suricata | Internet-wide scanner |
+| `77.110.x.x` | Listed in `block-attack1` | Early CPU trigger |
+
+`40.78.x.x` is in Microsoft Azure address space (Azure-hosted scanner). The same IP dominates three sensors at once, which is why a single source could both exhaust Conpot and generate the bulk of Tanner and Suricata noise.
 
 image x - attack to honeypot that caused 100 cpu usage to conpot container incident.
 <img width="653" height="442" alt="ksnip_20261019-101129(3)" src="https://github.com/user-attachments/assets/07a5b5c4-7962-4635-a532-e2bf687e26da" />
@@ -358,19 +371,49 @@ Virus Total Report:
 
 ### 6.5 Suricata
 
-| Metric                              | Value      |
-|-------------------------------------|------------|
-| Total events                    | ≈ 725 000  |
-| Alerts after internal filtering     | 4 752      |
-| Unique source IPs (in alert extract)| **405**    |
+| Metric                                      | Value                          |
+|---------------------------------------------|--------------------------------|
+| Total events (ES)                           | ≈ 725 000                      |
+| Alerts (full raw, all rotated eve.json*)    | **33 232**                     |
+| Unique source IPs (all alerts)              | **1 497**                      |
+| Unique source IPs (excl. internal Azure + author) | **1 493**                |
 
-Most relevant external signatures:
+> Full re-parse of `eve.json` + `eve.json.1.gz` … `eve.json.5.gz` (18–21 Oct).  
+> Internal Azure addresses (`10.10.0.4`, `169.254.169.254`, `168.63.129.16`) still dominate the raw count and are filtered by the DCR transform before Sentinel.
 
-- ET SCAN Potential SSH Scan  
-- ET SCAN Suspicious inbound to MySQL / MSSQL  
-- ET DROP Dshield / Spamhaus  
-- SSH-2.0-Go version string  
-- NMAP -sS  
+**Top signatures (full extract)**
+
+| Count | Signature |
+|------:|-----------|
+| 8 696 | ET INFO HTTP Request on Unusual Port Possibly Hostile |
+| 4 558 | ET EXPLOIT [PTsecurity] DoublePulsar Backdoor installation communication |
+| 1 834 | SURICATA STREAM RST recv but no session |
+| 1 493 | ET INFO SSH session in progress on Expected Port |
+| 1 205 | ET INFO SSH-2.0-Go version string Observed in Network Traffic |
+| 1 090 | GPL TELNET Bad Login |
+|   711 | ET DROP Dshield Block Listed Source group 1 |
+|   702 | GPL SNMP request udp |
+|   645 | GPL SNMP public access udp |
+|   592 | ET SCAN Potential SSH Scan |
+|   477 | ET SCAN NMAP -sS window 1024 |
+|   465 | ET INFO BusyBox Banner Observed |
+|   458 | ET HUNTING Possible Apache log4j RCE Attempt (CVE-2021-44228) |
+|   435 | ET SCAN Suspicious inbound to mySQL port 3306 |
+
+**Top external sources (masked, internal Azure removed)**
+
+| Count | Source (masked) | Notes |
+|------:|-----------------|-------|
+| 4 008 | `40.78.x.x` | Same IP that flooded Tanner and Conpot; later blocked |
+| 1 575 | `196.190.x.x` | |
+| 1 507 | `176.211.x.x` | |
+| 1 435 | `129.205.x.x` | |
+|   529 | `93.123.x.x` | Frequent PPTP / DROP hits |
+|   456 | `x.x.x.x` | Author management IP (anonymised) |
+|   267 | `31.7.x.x` | |
+|   246 | `77.239.x.x` | Also heavy on Cowrie |
+
+Notable findings: **DoublePulsar** (SMB backdoor install pattern) is the second most frequent signature; log4j probing and BusyBox banners confirm opportunistic IoT/botnet activity alongside classic SSH and SNMP scans.  
 
 Image x - Validation of evidence attack on Defender from source Suricata
 <img width="1130" height="738" alt="ksnip_20261019-121454" src="https://github.com/user-attachments/assets/72c85e74-f304-4d3d-bf68-9d879278fd26" />
@@ -554,11 +597,13 @@ Brainstorm based on the observed telemetry:
 4. **Malware distribution**  
    - Four distinct malware files captured by Dionaea, one identified as a trojan.
 
-5. **Possible research / academic scanners**  
-   - Some low-and-slow, multi-protocol sources that did not attempt brute-force.
+5. **SMB / DoublePulsar-style probing**  
+   - Suricata recorded **4 558** alerts for “ET EXPLOIT [PTsecurity] DoublePulsar Backdoor installation communication” — the second most frequent signature after unusual-port HTTP.  
+   - Indicates widespread automated scanning for EternalBlue / DoublePulsar remnants on exposed SMB (445), consistent with commodity botnet and worm activity rather than a targeted campaign.
 
-6. **OpenSource Inteligence that gathers IOT divices networks**
-   - Companies like Shodan retrives information that can be used for enhance security capabilities or for abuse.
+6. **Possible research / academic / OSINT scanners**  
+   - Some low-and-slow, multi-protocol sources that did not attempt brute-force.  
+   - Internet-wide scanners (e.g. Censys-range `66.132.x.x`, Shodan-style probes) that map exposed IoT and ICS devices; the data can be used for defence or for abuse.
 
 The dominant motivation remains **automated compromise at scale** rather than targeted attacks against a specific organisation.
 
@@ -574,7 +619,7 @@ The dominant motivation remains **automated compromise at scale** rather than ta
 | JSON parse errors on a subset of Tanner lines  | Parsing line by line: all 11,817 Tanner lines parse (the jq errors probably came from reading rotated `.gz` files without `zcat`) |
 | Repeated alerts (same event alerted in every overlapping run) | Documented in 7.1; fix by setting lookback equal to frequency, grouping by entity and summarising per entity |
 | Deployed rules differ from the exported ARM template | Re-export the rules from the portal before documenting them |
-| Conpot raw extract covers only 12 h | Elasticsearch counts (≈ 1 733) and Sentinel alerts (857) used to cross-check; re-pull with rotated logs |
+| Conpot / Suricata initially under-counted | First extracts used only the current log file; full re-parse of all rotated `.json*` raised Conpot to 1 827 events and Suricata alerts to 33 232 |
 | Dionaea `binaries.tgz` is empty | Samples are in `binaries.tgz.1` and `.2`; MD5 values taken from the Sentinel alerts |
 | Suricata eve.json changing while being archived| Accepted; SHA-256 still recorded for chain of custody |
 | Desire to keep malware evidence without risk   | Only hashes retained; binaries stay offline           |
@@ -645,7 +690,8 @@ The project already provides a solid, recruiter-friendly artefact that shows han
 | `cowrie_downloads.tsv` (117 rows) | `f7174b26b000a3080b7b54d2270b3abe2616d54519929c6fc7e5379975f8372b` |
 | `cowrie_uploads.tsv` (10 rows) | `2647dc001d968f0c32fb96a99244f429aab52d69435b4519202a6a3610cb8b22` |
 | `conpot_events.tsv` (190 rows) | `03e30ddc827df9816c0e9a41e52b8b8ee0253dcde66b37a865121e82b0d9bc25` |
-| `suricata_alerts.tsv` (4 752 rows) | `f4ab3a7c369517938610cdea57c0fdd121b61bdd0aa9eb21331fca92a6695926` |
+| `suricata_alerts_full.tsv` (33 232 rows) | *(re-generated from all rotated eve.json*)* |
+| `conpot_events_full.tsv` (1 827 rows) | *(re-generated from all rotated conpot_*.json*)* |
 | `dionaea_creds.jsonl` (8 632 rows) | `345336f8f6f5db2e34209637c7079981a37b2d974fc11cb26dbbda6cd38e56b2` |
 
 
