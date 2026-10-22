@@ -3,7 +3,7 @@ DEPLOYING AN INTERNET-FACING HONEYPOT - FOR THREAT INTELLIGENCE
 >Under Construction
 (image)
 
-112k + Attacks in 72h
+112k Events in 72h + 2100 Unique Ip's
 
 **Author:** Tiago Bastos  
 **Date:** October 2026  
@@ -46,7 +46,7 @@ An Internet-facing T-Pot honeypot was deployed on Microsoft Azure (Spain Central
 - **Suricata** – network IDS  
 - Local ELK stack for visualisation and comparison 
 
-Operating over an exposure window of approximately 72 hours, the honeypot captured 112,000+ events recorded originating from 4,700+ distinct IP addresses. Detailed log analysis revealed high-volume attack vectors across targeted ports, primary geographic sources, and observed threat actor Tactics, Techniques, and Procedures (TTPs).
+Operating over an exposure window of approximately 72 hours, the honeypot captured 112000+ events recorded originating from 2100+ distinct IP addresses. Detailed log analysis revealed high-volume attack vectors across targeted ports, primary geographic sources, and observed threat actor Tactics, Techniques, and Procedures (TTPs).
 
 Logs were forwarded in near real-time to a Microsoft Sentinel workspace via Azure Monitor Agent and a custom Data Collection Rule (`dcr-honeypot`).  
 
@@ -249,6 +249,8 @@ Twenty rules produced alerts (5,428 in total, none promoted to an incident). Two
 - Architecture fingerprinting (`uname`, `busybox`, CPU model strings)  
 - Occasional `wget`/`curl` dropper activity  
 
+Image x - botnet style ttp
+<img width="1168" height="182" alt="image" src="https://github.com/user-attachments/assets/030248fd-f3f4-4535-8b58-efd1bc80ca2b" />
 
 Curled/wget IOC's
 <img width="1299" height="539" alt="ksnip_20261021-195451" src="https://github.com/user-attachments/assets/79563054-5711-4f81-9bd5-bcc30bbb1e2a" />
@@ -272,7 +274,7 @@ Curled/wget IOC's
 | EtherNet/IP (`enip`) | 44818/tcp | **4** | T0883, T0846 | OT/ICS protocol interaction |
 | **Total (full raw)** | | **1 827** | | |
 
-| Top sources (masked) | Events | Notes |
+| Top sources | Events | Notes |
 |---|---|---|
 | `40.78.x.x` | 402 | Also top Tanner / Suricata source; one of the Conpot CPU attackers; later blocked |
 | `x.x.x.x` | 282 | Author management IP (anonymised) |
@@ -293,7 +295,7 @@ The dominant protocol is **SNMP** (read requests), followed by the two Kamstrup 
 
 **Sources (all later added to the NSG `block-attack1` deny rule):**
 
-| Source (masked) | Evidence across sensors (full extracts) | Role |
+| Source  | Evidence across sensors (full extracts) | Role |
 |---|---|---|
 | `40.78.x.x` | Tanner: **10 006** requests in 30 min (19 Oct 08:08–08:38 UTC, peak 2 068 req/min, 5 819 distinct paths); Conpot: **402** events; Suricata: **4 008** alerts | Primary CPU attacker; also top web / OT / IDS source |
 | `189.150.x.x` | Cowrie: **1 144** session.connect | High-volume SSH scanner |
@@ -325,8 +327,10 @@ The attacker flooded the machine with malformed GET requests and dropped connect
 2. iptables rate limit, dropping after 100 requests in 30 s.
 3. A watchdog (cron plus script) that restarts the container when CPU exceeds 75 %.
 
-**Recommended next steps:** a Docker CPU limit on the Conpot container, a container health check, and an Azure Monitor alert on CPU so the first incident is detected automatically.
+**Future Improvements:** a Docker CPU limit on the Conpot container, a container health check, and an Azure Monitor alert on CPU so the first incident is detected automatically.
 
+image - NGS updated block list.
+<img width="1055" height="342" alt="image" src="https://github.com/user-attachments/assets/0eea8996-96fe-49fc-9d93-2bb17841eec9" />
 
 
 image x - Conpot Validation Logs response at MS defender
