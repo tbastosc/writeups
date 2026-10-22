@@ -1,7 +1,6 @@
-DEPLOYING AN INTERNET-FACING HONEYPOT - FOR THREAT INTELLIGENCE
+DEPLOYING AN INTERNET-FACING HONEYPOT - THREAT INTELLIGENCE
 
->Under Construction
-(image)
+<img width="1408" height="768" alt="Gemini_Generated_Image_3b2jml3b2jml3b2j" src="https://github.com/user-attachments/assets/d3e0310f-a9b9-44f0-9b33-e72218e83f64" />
 
 112k Events in 72h + 2100 Unique Ip's
 
