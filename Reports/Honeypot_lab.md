@@ -2,7 +2,7 @@ DEPLOYING AN INTERNET-FACING HONEYPOT - THREAT INTELLIGENCE
 
 <img width="1408" height="768" alt="Gemini_Generated_Image_3b2jml3b2jml3b2j" src="https://github.com/user-attachments/assets/d3e0310f-a9b9-44f0-9b33-e72218e83f64" />
 
-112k Events in 72h + 2100 Unique Ip's
+                                   ###112k Events in 72h + 2100 Unique Ip's
 
 **Author:** Tiago Bastos  
 **Date:** October 2026  
@@ -33,7 +33,7 @@ DEPLOYING AN INTERNET-FACING HONEYPOT - THREAT INTELLIGENCE
 
 ---
 
-**1. EXECUTIVE SUMMARY**
+## 1. EXECUTIVE SUMMARY
 
 This report documents the deployment, integration, and threat analysis of an internet-facing cloud honeypot designed to capture real-world cyberattack data for proactive threat intelligence. Using Microsoft Azure, a Linux virtual machine was provisioned to host the T-Pot, incorporating multiple honeypot services including Cowrie, Dionaea, Conpot and Suricata. Ingestion pipelines were established to forward security events to Microsoft Sentinel for centralized SIEM log management, custom alert generation, and KQL-based analytics.
 An Internet-facing T-Pot honeypot was deployed on Microsoft Azure (Spain Central) with the following active services:
@@ -59,14 +59,6 @@ In a ~72-hour observation window the honeypot recorded:
 | Conpot     | **1 827** (full raw, all days) | SNMP / Kamstrup / IEC104 / guardian_ast dominant | **203** (202 excl. author) |
 | Suricata   | ≈ 725 000 total / **33 232** alerts (full raw) | DoublePulsar, SSH scans, SNMP, web scans | **1 497** (1 493 excl. internal Azure + author) |
 
-> **Note on Cowrie**  
-> The ELK / Elasticsearch dashboard shows ≈ 84 500 Cowrie documents. These are *all* event types (session.connect, client.version, login.failed, login.success, command.input, session.closed, …).  
-> Only **797** of them are `cowrie.login.success`, coming from **150 unique source IPs**.  
-> The number of unique IPs that merely *connected* (without necessarily succeeding) is higher; the current evidence package contains only the top-20 by connection volume.
-
-> **Note on Conpot / Suricata**  
-> Earlier drafts used only the current (non-rotated) log files. The values above come from a full re-parse of every rotated `.json` / `.json.*.gz` covering 18–21 October 2026.
-
 Custom analytic rules mapped to MITRE ATT&CK (including ATT&CK for ICS) generated alerts. Three **High** severity rules produced actionable findings that were cross-verified against the raw logs:
 
 1. **Persistence Attempts** – ex: mass installation of SSH authorized_keys  
@@ -79,11 +71,22 @@ The 22 analytic rules were deployed as a ~72-hour evaluation. Some alerts are th
 
 Total Azure cost for the period: **€15.03**.
 
+image x - Map of Attack
+<img width="840" height="500" alt="ksnip_20261022-020758(4)" src="https://github.com/user-attachments/assets/f22b2df7-788c-403a-ae79-d76e38d2ae80" />
 
-This project demonstrates how automated entities continuously probe exposed services while proving the utility of honeypots and SIEM integration in threat research. Operational hurdles, including port binding conflicts and active scanning attacks that compromised Docker service stability, required mitigation. The total infrastructure cost incurred was approximately 15€, funded via Azure for Students credits.
+
+>This project demonstrates how automated entities continuously probe exposed services while proving the utility of honeypots and SIEM integration in threat research. Operational hurdles, including port binding conflicts and active scanning attacks that compromised Docker service stability, required mitigation. The total infrastructure cost incurred was approximately 15€, funded via Azure for Students credits.
 
 
-2. PROJECT OBJECTIVES
+> **Note on Cowrie**  
+> The ELK / Elasticsearch dashboard shows ≈ 84 500 Cowrie documents. These are *all* event types (session.connect, client.version, login.failed, login.success, command.input, session.closed, …).  
+> Only **797** of them are `cowrie.login.success`, coming from **150 unique source IPs**.  
+> The number of unique IPs that merely *connected* (without necessarily succeeding) is higher; the current evidence package contains only the top-20 by connection volume.
+
+> **Note on Conpot / Suricata**  
+> Earlier drafts used only the current (non-rotated) log files. The values above come from a full re-parse of every rotated `.json` / `.json.*.gz` covering 18–21 October 2026.
+
+## 2. PROJECT OBJECTIVES
 
 The primary goals of this project were:
 • Deploy Cloud Infrastructure: Provision an internet-facing Linux host on Microsoft Azure running the T-Pot Community Edition framework.
@@ -184,6 +187,13 @@ malicious traffic.
 
 • A custom Network Security Group (NSG) was configured to expose only the
 necessary ports.
+
+image x - ELK dashboard (stats after 72h)
+<img width="1597" height="835" alt="ksnip_20261021-145137" src="https://github.com/user-attachments/assets/6ee22593-2d85-4ccb-880e-3212d9d1dedb" />
+<img width="1593" height="687" alt="ksnip_20261021-145137(2)" src="https://github.com/user-attachments/assets/45a5c64b-96d0-4214-b0fd-c93ee80bb1dd" />
+<img width="1593" height="444" alt="ksnip_20261021-145137(3)" src="https://github.com/user-attachments/assets/48b11490-353d-419d-8a92-57fbb7577c68" />
+
+
 
 ---
 
@@ -667,35 +677,16 @@ The ~72-hour experiment successfully demonstrated:
 
 The 22 rules were an evaluation run of ~72 hours: some alerts are noise, repeats or the product of misconfigured rules, and that is part of the findings rather than a defect of the data.
 
-The project already provides a solid, recruiter-friendly artefact that shows hands-on experience with honeypots, Azure Sentinel, detection engineering and privacy-aware research.
+The project provides a solid, friendly artefact that enhance hands-on experience with honeypots, Azure Sentinel, detection engineering and privacy-aware research.
 
 ---
 
-## 13. Appendix – Evidence Index & Chain of Custody
+### Reference 
+T-pot 
+Azure
+Sentinel
+Ms Defender
 
-### 13.1 Malware hashes (from the Malware captured alerts)
-
-| MD5 | Alerts | First seen (UTC) | Last seen (UTC) |
-|---|---|---|---|
-| `70ccd9220cebb56eaa38b9f1bd1a1cd8` | 6 | 2026-10-19 22:08 | 2026-10-20 03:09 |
-| `33d373e264dc7fdb0bcdbd8e075a6319` | 3 | 2026-10-19 21:08 | 2026-10-19 23:09 |
-| `bedea9a1132892eb9041c601f2a49d03` | 2 | 2026-10-20 10:25 | 2026-10-20 10:55 |
-| `ae12bb54af31227017feffd9598a6f5e` | 1 | 2026-10-20 09:08 | 2026-10-20 09:08 |
-
-
-### 13.2 Extracts (SHA-256)
- 
- Will be provided anonymized version 'anonymized_extracts.zip'
-| File | SHA-256 |
-|---|---|
-| `cowrie_login_success.tsv` (797 rows) | `c81e0769804af0f90f26682cc6ee1719e526de31cf422f0c75c5d57ed113ed9e` |
-| `cowrie_commands.tsv` (3 724 rows) | `c132ea03d44394c4fcf2bec003da070643a341f49b5629b126ad3de7bd4fd0bd` |
-| `cowrie_downloads.tsv` (117 rows) | `f7174b26b000a3080b7b54d2270b3abe2616d54519929c6fc7e5379975f8372b` |
-| `cowrie_uploads.tsv` (10 rows) | `2647dc001d968f0c32fb96a99244f429aab52d69435b4519202a6a3610cb8b22` |
-| `conpot_events.tsv` (190 rows) | `03e30ddc827df9816c0e9a41e52b8b8ee0253dcde66b37a865121e82b0d9bc25` |
-| `suricata_alerts_full.tsv` (33 232 rows) | *(re-generated from all rotated eve.json*)* |
-| `conpot_events_full.tsv` (1 827 rows) | *(re-generated from all rotated conpot_*.json*)* |
-| `dionaea_creds.jsonl` (8 632 rows) | `345336f8f6f5db2e34209637c7079981a37b2d974fc11cb26dbbda6cd38e56b2` |
 
 
 ---
