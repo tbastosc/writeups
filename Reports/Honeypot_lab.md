@@ -73,6 +73,7 @@ All public IP addresses belonging to the author and to the honeypot virtual mach
 Attacker IPs are partially masked (first two octets retained for easier reading of the evidence).  
 Credential lists and command histories are retained because they represent common attacker behaviour observed on an intentionally exposed research system.  
 No malware binaries are published, only cryptographic hashes.
+> GDPR explicitly classifies online identifiers, including both static and dynamic IP addresses, as personal data. 
 
 
 ## 2. Project Objectives
