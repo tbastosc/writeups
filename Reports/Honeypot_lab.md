@@ -35,7 +35,7 @@ DEPLOYING AN INTERNET-FACING HONEYPOT - THREAT INTELLIGENCE
 
 ## 1. EXECUTIVE SUMMARY
 
-**This project demonstrates how automated entities continuously probe exposed services while proving the utility of honeypots and SIEM integration in threat research. Overcome operational hurdles, including active scanning attacks that compromised Docker service stability, required mitigation (6.2.1). The total infrastructure cost incurred was approximately 15€, funded via Azure for Students credits.**
+**This project demonstrates how automated entities continuously probe exposed services while proving the utility of honeypots and SIEM integration in threat research. Overcome operational hurdles, including active scanning attacks that compromised Docker service stability, required mitigation (6.2.1). The total infrastructure cost incurred was approximately 15€, funded via Azure for Trial credits.**
 
 This report documents the deployment, integration, and threat analysis of an internet-facing cloud honeypot designed to capture real-world cyberattack data for proactive threat intelligence. Using Microsoft Azure, a Linux virtual machine was provisioned to host the T-Pot, incorporating multiple honeypot services including Cowrie, Dionaea, Conpot and Suricata. Ingestion pipelines were established to forward security events to Microsoft Sentinel for centralized SIEM log management, custom alert generation, and KQL-based analytics.
 An Internet-facing T-Pot honeypot was deployed on Microsoft Azure (Spain Central) with the following active services:
