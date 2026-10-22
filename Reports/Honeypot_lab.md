@@ -110,8 +110,7 @@ The primary goals of this project were:
 | NSG | `nsg-hp`, associated to that NIC |
 | Sentinel resource group | `sentinel-trial` |
 | Workspace | `tpot-sentinel` |
-| Data collection endpoint | `dce-hp-ne` |
-| Data collection rule | `dcr-honeypot`, kind Linux, provisioning Succeeded |
+| Data collection rule | `dcr-honeypot`|
 | Public IP | *anonymised as x.x.x.x in public version*  |
 
 ### 3.2 Network Security Group (NSG)
