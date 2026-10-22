@@ -29,7 +29,7 @@
 
 ## 1. Executive Summary
 
-An internet-facing T-Pot all-in-one honeypot (only used Cowrie, Conpot, Dionaea, Tanner, Suricata) ran for ~72 hours on Azure and fed Microsoft Sentinel through the Azure Monitor Agent and a custom DCR. It recorded ~112k honeypot events plus 18.6k external Suricata alerts. The traffic was dominated by SSH botnets (backdoor key installed 77 times from 41 IPs), one Azure-hosted scanner that flooded the web, SNMP and IDS sensors and crashed a Conpot container, and a smaller amount of OT/ICS probing. Created 22 KQL analytic rules mapped to MITRE ATT&CK (Enterprise and ICS) raised 5,428 alerts; the 72-hour evaluation also exposed noise, repeated alerts and misconfigured rules, documented here as improvements. Total cost: about €15.
+Deployed an internet-facing T-Pot all-in-one honeypot (only used Cowrie, Conpot, Dionaea, Tanner, Suricata) ran for ~72 hours on Azure and fed Microsoft Sentinel through the Azure Monitor Agent and a custom DCR. It recorded ~112k honeypot events plus 18.6k external Suricata alerts. The traffic was dominated by SSH botnets (backdoor key installed 77 times from 41 IPs), one Azure-hosted scanner that flooded the web, SNMP and IDS sensors and crashed a Conpot container, and a smaller amount of OT/ICS probing. Created 22 KQL analytic rules mapped to MITRE ATT&CK (Enterprise and ICS) raised 5,428 alerts; the 72-hour evaluation also exposed noise, repeated alerts and misconfigured rules, documented here as improvements. Total cost: about €15.
 
 This report documents the deployment, integration and analysis of an internet-facing T-Pot honeypot on Microsoft Azure (Spain Central). Five services ran for approximately 72 hours (18–21 October 2026):
 
