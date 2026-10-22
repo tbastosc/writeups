@@ -35,6 +35,8 @@ DEPLOYING AN INTERNET-FACING HONEYPOT - THREAT INTELLIGENCE
 
 ## 1. EXECUTIVE SUMMARY
 
+**This project demonstrates how automated entities continuously probe exposed services while proving the utility of honeypots and SIEM integration in threat research. Overcome operational hurdles, including active scanning attacks that compromised Docker service stability, required mitigation (6.2.1). The total infrastructure cost incurred was approximately 15€, funded via Azure for Students credits.**
+
 This report documents the deployment, integration, and threat analysis of an internet-facing cloud honeypot designed to capture real-world cyberattack data for proactive threat intelligence. Using Microsoft Azure, a Linux virtual machine was provisioned to host the T-Pot, incorporating multiple honeypot services including Cowrie, Dionaea, Conpot and Suricata. Ingestion pipelines were established to forward security events to Microsoft Sentinel for centralized SIEM log management, custom alert generation, and KQL-based analytics.
 An Internet-facing T-Pot honeypot was deployed on Microsoft Azure (Spain Central) with the following active services:
 
@@ -65,17 +67,11 @@ Custom analytic rules mapped to MITRE ATT&CK (including ATT&CK for ICS) generate
 2. **Malware captured** – 4 distinct files captured (MD5 in Appendix 13), 1 identified as a trojan 
 3. **Payloads in POST bodies** – 156 alerts from a single scanner; the rule was rewritten after the evaluation (see 8.3)
 
-Operational mitigations were required after the Conpot container was driven to 100 % CPU four times by four different scanners (see 6.2.1).
-
 The 22 analytic rules were deployed as a ~72-hour evaluation. Some alerts are therefore noise, repeats or the result of misconfigured rules; this is documented in 7.1 and listed as an improvement.
-
-
 
 
 <img width="840" height="500" alt="ksnip_20261022-020758(4)" src="https://github.com/user-attachments/assets/f22b2df7-788c-403a-ae79-d76e38d2ae80" />
 
-
-**This project demonstrates how automated entities continuously probe exposed services while proving the utility of honeypots and SIEM integration in threat research. Operational hurdles, including active scanning attacks that compromised Docker service stability, required mitigation. The total infrastructure cost incurred was approximately 15€, funded via Azure for Students credits.**
 
 
 > **Note on Cowrie**  
@@ -89,12 +85,19 @@ The 22 analytic rules were deployed as a ~72-hour evaluation. Some alerts are th
 ## 2. PROJECT OBJECTIVES
 
 The primary goals of this project were:
-• Deploy Cloud Infrastructure: Provision an internet-facing Linux host on Microsoft Azure running the T-Pot Community Edition framework.
+
+• Deploy Cloud Infrastructure: Provision an internet-facing Linux host on Microsoft Azure running the T-Pot framework.
+
 • Simulate Exposed Targets: Emulate vulnerable services across multiple protocols (SSH, HTTP, SMB) with a primary focus on ICS/SCADA environments (e.g., using Conpot alongside Cowrie and Suricata) to capture unsolicited internet traffic.
+
 • Establish SIEM Ingestion: Build custom ingestion pipelines and connectors to stream logs from local containerized services to Microsoft Sentinel.
+
 • Threat Detection & KQL Rules: Construct custom Kusto Query Language (KQL) analytics rules focusing on MITRE ATT&CK TTPs, brute-force patterns, and targeted probing of industrial control protocols.
+
 • Document Technical Challenges: Identify and resolve deployment friction points, such as Docker container orchestration, port conflicts, and disabling active modules (e.g., SpiderFoot) to avoid unwanted outbound scanning reports.
+
 • Deliver Cost-Aware Intelligence: Produce an actionable threat intelligence report mapping real-world threat actor behaviors while maintaining cost controls.
+
 • Ensure Regulatory Compliance: Practice privacy-by-design by anonymizing/obfuscating IPv4/IPv6 data to align with GDPR guidelines prior to publishing findings.
 
 
