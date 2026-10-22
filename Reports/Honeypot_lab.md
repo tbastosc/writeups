@@ -248,6 +248,17 @@ Twenty of the 22 rules produced alerts (5,428 in total, none promoted to an inci
 - Architecture fingerprinting (`uname`, `busybox`, CPU model strings)  
 - Occasional `wget`/`curl` dropper activity  
 
+
+** Cowrie downloads (SHA-256)**
+
+| SHA-256 | Events | Source IPs | First / last seen (UTC) | Context |
+|---|---|---|---|---|
+| `a8460f446be540410004b1a8db4083773fa46f7fe76fa84219c93daa1669f8f2` | 77 | 41 | 2026-10-20T22:55 / 2026-10-21T12:59 | `mdrfckr` playbook (chattr, authorized_keys, chpasswd): the SSH key file |
+| `01ba4719c80b6fe911b091a7c05124b64eeece964e09c058ef8f9805daca546b` | 36 | 23 | 2026-10-21T00:21 / 2026-10-21T12:59 | same playbook (`secure.sh` / `auth.sh` clean-up); not a binary download |
+| `0db4656687a425c47d19000db866db52c7e415dbfaf6b5c651adcb9275ab23ca` | 2 | 1 | 2026-10-20T03:41 / 2026-10-20T10:57 | one IP, `uname -a; echo -e "\x61\x75..."; cd /tmp` |
+| `ae8d459595257f2f22c9d1ff74c4fb8a91643fad7899b57556496716692b904e` | 2 | 1 | 2026-10-20T03:41 / 2026-10-20T10:57 | same IP and same two sessions as `0db46566` |
+
+
 *Figure: botnet-style TTPs*
 
 <img width="730" height="137" alt="image" src="https://github.com/user-attachments/assets/a4ab114e-eb67-4204-8f54-735fca550f73" />
