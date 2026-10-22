@@ -219,7 +219,7 @@ Twenty-two scheduled rules were deployed (exported as an ARM template) and left 
 - **Medium**: 14 rules
 - **Low**: 5 rules
 
-Twenty rules produced alerts (5,428 in total, none promoted to an incident). Two produced none. Full list with MITRE mapping is in Section 7.
+Twenty-two rules produced alerts (5,428 in total). Full list with MITRE mapping is in Section 7.
 
 ---
 
@@ -237,7 +237,7 @@ Twenty rules produced alerts (5,428 in total, none promoted to an incident). Two
 | Top password (all attempts)         | 123456                         |
 | Most common successful pair         | enable:linuxshell (454)        |
 | File downloads                      | 117 (4 unique SHA-256, none with a source URL; 77 are the `mdrfckr` key file) |
-| File uploads                        | 10 (one is an empty file, SHA-256 `e3b0c442…`) |
+| File uploads                        | 10 (one is an empty file) |
 
 > The 150 unique IPs refer **only** to sources that achieved at least one successful login.  
 > The number of distinct IPs that merely opened a TCP connection (session.connect) is higher; the evidence package currently contains only the top-20 by connection volume (already > 12 000 connections from those 20 IPs alone).
