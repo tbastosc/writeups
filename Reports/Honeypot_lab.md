@@ -126,7 +126,8 @@ Honeypot ports (expanded set used during the experiment):
 
 A temporary deny rule (`block-attack1`) was added for four aggressive source IPs after a Conpot CPU exhaustion incident.
 
-<img width="1000" height="512" alt="ksnip_20261019-190705(2)" src="https://github.com/user-attachments/assets/0dae8720-376f-490d-aa42-ee5f35648053" />
+<img width="996" height="504" alt="image" src="https://github.com/user-attachments/assets/e7bb952e-8a5c-409e-bef5-9d9f7e9ba6dd" />
+
 
 
 ### 3.3 Data-flow architecture
