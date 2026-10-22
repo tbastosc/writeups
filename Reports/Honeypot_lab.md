@@ -69,13 +69,13 @@ Operational mitigations were required after the Conpot container was driven to 1
 
 The 22 analytic rules were deployed as a ~72-hour evaluation. Some alerts are therefore noise, repeats or the result of misconfigured rules; this is documented in 7.1 and listed as an improvement.
 
-Total Azure cost for the period: **€15.03**.
 
-image x - Map of Attack
+
+
 <img width="840" height="500" alt="ksnip_20261022-020758(4)" src="https://github.com/user-attachments/assets/f22b2df7-788c-403a-ae79-d76e38d2ae80" />
 
 
->This project demonstrates how automated entities continuously probe exposed services while proving the utility of honeypots and SIEM integration in threat research. Operational hurdles, including port binding conflicts and active scanning attacks that compromised Docker service stability, required mitigation. The total infrastructure cost incurred was approximately 15€, funded via Azure for Students credits.
+**This project demonstrates how automated entities continuously probe exposed services while proving the utility of honeypots and SIEM integration in threat research. Operational hurdles, including active scanning attacks that compromised Docker service stability, required mitigation. The total infrastructure cost incurred was approximately 15€, funded via Azure for Students credits.**
 
 
 > **Note on Cowrie**  
