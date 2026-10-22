@@ -349,8 +349,9 @@ image - NGS updated block list.
 <img width="1055" height="342" alt="image" src="https://github.com/user-attachments/assets/0eea8996-96fe-49fc-9d93-2bb17841eec9" />
 
 
-image x - Conpot Validation Logs response at MS defender
-<img width="1140" height="816" alt="ksnip_20261018-181334" src="https://github.com/user-attachments/assets/d881e691-fd68-423d-97e2-482c6edcb59a" />
+image x - Conpot Validation Logs response at MS defender, emulating Siemens PLC.
+<img width="1140" height="816" alt="ksnip_20261018-181334" src="https://github.com/user-attachments/assets/db541aca-0ba0-40fc-ba6d-302419659c8f" />
+
 
 
 ### 6.3 Dionaea
