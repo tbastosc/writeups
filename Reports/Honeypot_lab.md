@@ -233,6 +233,10 @@ Twenty-two scheduled rules were deployed (exported as an ARM template) and left 
 
 Twenty-two rules produced alerts (5,428 in total). Full list with MITRE mapping is in Section 7.
 
+<img width="1217" height="928" alt="ksnip_20261019-105529" src="https://github.com/user-attachments/assets/64bb06c9-3ce0-4dad-a58a-c48ada90ddbe" />
+
+
+
 ---
 
 ## 6. Log Analysis & Key Findings
@@ -575,6 +579,9 @@ Tanner_CL
 <img width="796" height="359" alt="image" src="https://github.com/user-attachments/assets/4b0005a0-dc3d-41ac-8601-a660d82cbc7f" />
 
 **Evidence (Tanner raw logs, 18 to 21 Oct):** 391 POST requests, 199 of them with a body. 52 bodies match the rule keywords: 39 from `40.78.x.x`, 5 from `168.222.x.x`, 5 from `190.171.x.x`, 2 from `152.236.x.x`, 1 from `96.62.x.x`. The 156 Sentinel alerts come from 39 events of the first source: the rule ran 4 consecutive times (5-minute frequency, 8 h deployed lookback) and returned the same 39 events each time (4 x 39 = 156), see 7.1. A Python replica of the v2 regex on the raw Tanner logs matches 107 of the 199 bodies; this still has to be confirmed by running the v2 query in Sentinel.
+
+<img width="635" height="650" alt="ksnip_20261019-111116" src="https://github.com/user-attachments/assets/9feb9dcb-d029-4b84-a4a4-321d74dc4cd5" />
+
 
 | Payload family (count) | Source | What it is | MITRE |
 |---|---|---|---|
