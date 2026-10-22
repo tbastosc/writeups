@@ -637,7 +637,7 @@ The project already provides a solid, recruiter-friendly artefact that shows han
 
 ### 13.2 Extracts (SHA-256)
  
- Will not be published, GDRP reasons.
+ Will be provided anonymized version 'anonymized_extracts.zip'
 | File | SHA-256 |
 |---|---|
 | `cowrie_login_success.tsv` (797 rows) | `c81e0769804af0f90f26682cc6ee1719e526de31cf422f0c75c5d57ed113ed9e` |
