@@ -9,16 +9,17 @@ A single external host scanned a WordPress site, tried a short password list aga
 
 | Milestone | Time |
 |---|---|
-| Reconnaissance begins (WPScan) | `T+00:00` |
-| Password guessing against `wp-login.php` (45 attempts, all failed) | `T+00:42` to `T+00:44` |
-| Exploitation begins (`/batch/v1`) | `T+05:52` |
-| First OS-level command through the web shell | `T+06:46` |
-| First temporary admin removed | `T+06:46` |
-| Second temporary admin and web shell removed | `T+09:16` |
-| First `root` SSH login | `T+13:48` |
-| Database dump created / completed | `T+18:01` / `T+19:18` |
-| SSH session ends | `T+24:25` |
-| Host shut down | `T+30:28` |
+| Reconnaissance begins (WPScan) | `2026-07-31 09:09:22` |
+| Password guessing against `wp-login.php` (45 attempts, all failed) | `2026-07-31 09:10:04` to `09:10:06` |
+| Exploitation begins (`/batch/v1`) | `2026-07-31 09:15:14` |
+| First OS-level command through the web shell (`id`) | `2026-07-31 09:16:08` |
+| First temporary admin removed | `2026-07-31 09:16:08` |
+| Second temporary admin and web shell removed | `2026-07-31 09:18:38` |
+| SSH service started by attacker | `2026-07-31 09:23:03` |
+| First `root` SSH login | `2026-07-31 09:23:10` |
+| Database dump created / completed | `2026-07-31 09:27:23` / `09:28:40` |
+| SSH session ends | `2026-07-31 09:33:47` |
+| Host shut down | `2026-07-31 09:39:50` |
 
 ## MITRE ATT&CK mapping
 
